@@ -6,9 +6,9 @@ service:
   base-path: /auth/login-o-auth
   endpoints:
     get:
+      display-name: Login User
       path: ""
       method: GET
-      display-name: Get User
       docs: >
         Logs a [user](#users) in.
         #### Example

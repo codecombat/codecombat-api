@@ -9,6 +9,7 @@ service:
   base-path: /
   endpoints:
     create:
+      display-name: Create User 
       path: /users
       method: POST
       docs: |
@@ -35,6 +36,7 @@ service:
             birthday: optional<string>
 
     get:
+      display-name: Get User
       path: /users/{handle}
       method: GET
       docs: Returns a `User`.
@@ -51,6 +53,7 @@ service:
       response: commons.UserResponse
 
     update:
+      display-name: Update User 
       path: /users/{handle}
       method: PUT
       docs: Modify name of a `User`
@@ -71,6 +74,7 @@ service:
       response: commons.UserResponse
 
     getClassrooms:
+      display-name: Get Classrooms By User 
       path: /users/{handle}/classrooms
       method: GET
       docs: >-
@@ -89,6 +93,7 @@ service:
       response: list<commons.ClassroomResponseWithCode>
 
     getHero:
+      display-name: Get User Hero 
       path: /users/{handle}/hero-config
       method: PUT
       docs: Set the user's hero.
@@ -135,6 +140,7 @@ service:
       response: commons.UserResponse
 
     addOAuthIdentity:
+      display-name: Add OAuth2 Identity
       path: /users/{handle}/o-auth-identities
       method: POST
       docs: >
@@ -209,6 +215,7 @@ service:
       response: commons.UserResponse
 
     shortenSubscription:
+      display-name: Shorten User Subscription
       path: /users/{handle}/shorten-subscription
       method: PUT
       docs: >
@@ -237,6 +244,7 @@ service:
       response: commons.UserResponse
 
     grantLicense:
+      display-name: Grant User License
       path: /users/{handle}/license
       method: PUT
       docs: |
@@ -262,6 +270,7 @@ service:
       response: commons.UserResponse
 
     shortenLicense:
+      display-name: Shorten User License
       path: /users/{handle}/shorten-license
       method: PUT
       docs: >
@@ -291,6 +300,7 @@ service:
 
     #TODO feels like a chain of endpoint to endpoint actions
     findUser:
+      display-name: Search for User
       path: /user-lookup/{property}/{value}
       method: GET
       docs: Redirects to `/users/{handle}` given a unique, identifying property

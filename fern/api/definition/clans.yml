@@ -4,7 +4,7 @@ imports:
   commons: commons.yml
 
 service:
-  display-name: ClansService
+  display-name: Clans Service
   auth: true
   base-path: /clan/{handle}/members
   path-parameters:
@@ -13,6 +13,7 @@ service:
       type: string
   endpoints:
     upsertClan:
+      display-name: Upsert User Into Clan 
       path: ""
       method: PUT
       docs: Upserts a user into the clan.

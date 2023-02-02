@@ -1,6 +1,6 @@
-default-group: external
+default-group: publish
 groups:
-  external:
+  publish:
     generators:
       - name: fernapi/fern-typescript-sdk
         version: 0.0.273

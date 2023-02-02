@@ -37,4 +37,4 @@ jobs:
           FERN_MAVEN_PASSWORD: ${FERN_MAVEN_PASSWORD}
           FERN_POSTMAN_API_KEY: ${FERN_POSTMAN_API_KEY}
           FERN_POSTMAN_WORKSPACE_ID: ${FERN_POSTMAN_WORKSPACE_ID}
-        run: fern generate --group external --version ${{ github.ref_name }} --log-level debug
+        run: fern generate --group publish --version ${{ github.ref_name }} --log-level debug

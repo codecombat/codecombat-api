@@ -6,6 +6,7 @@ service:
   base-path: /
   endpoints:
     getPlaytimeStats:
+      display-name: Get Playtime Stats 
       path: /playtime-stats
       method: GET
       docs: Returns the playtime stats
@@ -24,6 +25,7 @@ service:
       response: PlaytimeStatsResponse
 
     getLicenseStats:
+      display-name: Get License Stats 
       path: /license-stats
       method: GET
       docs: Returns the license stats
