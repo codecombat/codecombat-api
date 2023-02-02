@@ -36,4 +36,14 @@ To trigger the generators run:
 fern generate --group external --version <version>
 ```
 
-This command currently runs in a GitHub workflow (see [ci.yml](.github/workflows/ci.yml#L32))
+To trigger the generators run:
+
+```bash
+# output generated files locally
+fern generate
+
+# publish generated files
+fern generate --group publish --version <version>
+```
+
+The publish command currently runs in a GitHub workflow (see [ci.yml](.github/workflows/ci.yml#L32))
