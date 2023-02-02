@@ -8,11 +8,13 @@ service:
   auth: true
   base-path: /classrooms
   endpoints:
-    "":
+    get:
+      display-name: Get Classroom Details 
       path: ""
       method: GET
       docs: Returns the classroom details for a class code.
       request:
+        name: GetClassroomDetailsRequest
         query-parameters:
           code:
             docs: The classroom's `code`.
@@ -22,11 +24,13 @@ service:
             type: optional<double>
       response: commons.ClassroomResponseWithCode
 
-    _unnamedOperation11:
+    create:
+      display-name: Create a Classroom
       path: ""
       method: POST
       docs: Creates a new empty `Classroom`.
       request:
+        name: CreateClassroomRequest
         body:
           properties:
             name:
@@ -35,7 +39,8 @@ service:
             ownerID: commons.objectIdString
             aceConfig: _InlinedType4
 
-    _unnamedOperation12:
+    upsertFromClassroom:
+      display-name: Upsert a User from Classroom
       path: /{handle}/members
       method: PUT
       docs: Upserts a user into the classroom.
@@ -44,6 +49,7 @@ service:
           docs: The document's `_id` or `slug`.
           type: string
       request:
+        name: UpsertClassroomRequest
         body:
           properties:
             code:
@@ -59,7 +65,8 @@ service:
               type: optional<double>
       response: commons.ClassroomResponse
 
-    _unnamedOperation13:
+    deleteUserFromClassroom:
+      display-name: Delete User from Classroom 
       path: /{handle}/members
       method: DELETE
       docs: Remove a user from the classroom.
@@ -68,6 +75,7 @@ service:
           docs: The document's `_id` or `slug`.
           type: string
       request:
+        name: DeleteUserFromClassroomRequest
         body:
           properties:
             userId:
@@ -80,7 +88,8 @@ service:
               type: optional<double>
       response: commons.ClassroomResponse
 
-    _unnamedOperation14:
+    enrollUserInCourse:
+      display-name: Enroll a User in a Course
       path: /{classroomHandle}/courses/{courseHandle}/enrolled
       method: PUT
       docs: |
@@ -95,6 +104,7 @@ service:
           docs: The course's `_id`.
           type: string
       request:
+        name: EnrollUserInCourseRequest
         query-parameters:
           retMemberLimit:
             docs: >-
@@ -106,7 +116,8 @@ service:
             userId: commons.objectIdString
       response: commons.ClassroomResponse
 
-    _unnamedOperation15:
+    removeUserFromClassroom:
+      display-name: Remove a User from a Classroom
       path: /{classroomHandle}/courses/{courseHandle}/remove-enrolled
       method: PUT
       docs: |
@@ -119,6 +130,7 @@ service:
           docs: The course's `_id`.
           type: string
       request:
+        name: RemoveUserFromClassroomRequest
         query-parameters:
           retMemberLimit:
             docs: >-
@@ -130,7 +142,8 @@ service:
             userId: commons.objectIdString
       response: commons.ClassroomResponse
 
-    _unnamedOperation16:
+    getMembersStats:
+      display-name: Get Members Stats for a Classroom 
       path: /{classroomHandle}/stats
       method: GET
       docs: |
@@ -140,6 +153,7 @@ service:
           docs: The classroom's `_id`.
           type: string
       request:
+        name: GetMembersStatsRequest
         query-parameters:
           project:
             docs: >
@@ -158,7 +172,8 @@ service:
             type: optional<double>
       response: list<_InlinedType6>
 
-    _unnamedOperation17:
+    getLevelSession:
+      display-name: Get Level Session
       path: /{classroomHandle}/members/{memberHandle}/sessions
       method: GET
       docs: |

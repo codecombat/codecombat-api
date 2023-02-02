@@ -8,6 +8,7 @@ service:
     get:
       path: ""
       method: GET
+      display-name: Get User
       docs: >
         Logs a [user](#users) in.
         #### Example
@@ -26,6 +27,7 @@ service:
         information in our db. If everything checks out, the user is logged in
         and redirected to the home page.
       request:
+        name: GetUserAuthRequest
         query-parameters:
           provider:
             docs: Your OAuth Provider ID

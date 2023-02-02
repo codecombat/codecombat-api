@@ -20,6 +20,7 @@ service:
         request.post({ url, json, auth })
         ```
       request:
+        name: CreateUserRequest
         body:
           properties:
             name: string
@@ -202,7 +203,9 @@ service:
           type: string
       request:
         name: UpdateSubscriptionRequest
-        body: commons.#/components/requestBodies/Subscription
+        body: 
+          properties:
+            ends: datetime
       response: commons.UserResponse
 
     shortenSubscription:
@@ -228,7 +231,9 @@ service:
           type: string
       request:
         name: ShortenSubscriptionRequest
-        body: commons.#/components/requestBodies/Subscription
+        body: 
+          properties:
+            ends: datetime
       response: commons.UserResponse
 
     grantLicense:
@@ -251,7 +256,9 @@ service:
           type: string
       request:
         name: GrantLicenseRequest
-        body: commons.#/components/requestBodies/Subscription
+        body: 
+          properties:
+            ends: datetime
       response: commons.UserResponse
 
     shortenLicense:
@@ -277,7 +284,9 @@ service:
           type: string
       request:
         name: ShortenLicenseRequest
-        body: commons.#/components/requestBodies/Subscription
+        body: 
+          properties:
+            ends: datetime
       response: commons.UserResponse
 
     #TODO feels like a chain of endpoint to endpoint actions

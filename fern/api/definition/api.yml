@@ -1,6 +1,6 @@
 name: api
 display-name: CodeCombat API
-# auth: TODO
+auth: basic
 environments:
   Production: https://codecombat.com/api
 default-environment: Production

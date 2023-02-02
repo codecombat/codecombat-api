@@ -12,11 +12,12 @@ service:
       docs: The document's `_id` or `slug`.
       type: string
   endpoints:
-    "":
+    upsertClan:
       path: ""
       method: PUT
       docs: Upserts a user into the clan.
       request:
+        name: UpsertClanRequest
         body:
           properties:
             userId:
