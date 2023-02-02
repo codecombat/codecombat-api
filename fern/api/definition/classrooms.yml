@@ -1,0 +1,225 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  commons: commons.yml
+
+service:
+  display-name: ClassroomsService
+  auth: true
+  base-path: /classrooms
+  endpoints:
+    "":
+      path: ""
+      method: GET
+      docs: Returns the classroom details for a class code.
+      request:
+        query-parameters:
+          code:
+            docs: The classroom's `code`.
+            type: string
+          retMemberLimit:
+            docs: limit the return number of members for the classroom
+            type: optional<double>
+      response: commons.ClassroomResponseWithCode
+
+    _unnamedOperation11:
+      path: ""
+      method: POST
+      docs: Creates a new empty `Classroom`.
+      request:
+        body:
+          properties:
+            name:
+              docs: Name of the classroom
+              type: string
+            ownerID: commons.objectIdString
+            aceConfig: _InlinedType4
+
+    _unnamedOperation12:
+      path: /{handle}/members
+      method: PUT
+      docs: Upserts a user into the classroom.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        body:
+          properties:
+            code:
+              docs: The code for joining this classroom
+              type: string
+            userId:
+              docs: The `_id` or `slug` of the user to add to the class.
+              type: string
+            retMemberLimit:
+              docs: >-
+                limit the return number of members for the classroom, the
+                default value is 1000
+              type: optional<double>
+      response: commons.ClassroomResponse
+
+    _unnamedOperation13:
+      path: /{handle}/members
+      method: DELETE
+      docs: Remove a user from the classroom.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        body:
+          properties:
+            userId:
+              docs: The `_id` or `slug` of the user to remove from the class.
+              type: string
+            retMemberLimit:
+              docs: >-
+                limit the return number of members for the classroom, the
+                default value is 1000
+              type: optional<double>
+      response: commons.ClassroomResponse
+
+    _unnamedOperation14:
+      path: /{classroomHandle}/courses/{courseHandle}/enrolled
+      method: PUT
+      docs: |
+        Enrolls a user in a course in a classroom.
+        If the course is paid, user must have an active license.
+        User must be a member of the classroom.
+      path-parameters:
+        classroomHandle:
+          docs: The classroom's `_id`.
+          type: string
+        courseHandle:
+          docs: The course's `_id`.
+          type: string
+      request:
+        query-parameters:
+          retMemberLimit:
+            docs: >-
+              limit the return number of members for the classroom, the default
+              value is 1000
+            type: optional<double>
+        body:
+          properties:
+            userId: commons.objectIdString
+      response: commons.ClassroomResponse
+
+    _unnamedOperation15:
+      path: /{classroomHandle}/courses/{courseHandle}/remove-enrolled
+      method: PUT
+      docs: |
+        Removes an enrolled user from a course in a classroom.
+      path-parameters:
+        classroomHandle:
+          docs: The classroom's `_id`.
+          type: string
+        courseHandle:
+          docs: The course's `_id`.
+          type: string
+      request:
+        query-parameters:
+          retMemberLimit:
+            docs: >-
+              limit the return number of members for the classroom, the default
+              value is 1000
+            type: optional<double>
+        body:
+          properties:
+            userId: commons.objectIdString
+      response: commons.ClassroomResponse
+
+    _unnamedOperation16:
+      path: /{classroomHandle}/stats
+      method: GET
+      docs: |
+        Returns a list of all members stats for the classroom.
+      path-parameters:
+        classroomHandle:
+          docs: The classroom's `_id`.
+          type: string
+      request:
+        query-parameters:
+          project:
+            docs: >
+              If specified, include only the specified projection of returned
+              stats; else, return all stats. Format as a comma-separated list,
+              like `creator,playtime,state.complete`.
+            type: optional<string>
+          memberLimit:
+            docs: >-
+              Limit the return member number. the default value is 10, and the
+              max value is 100
+            type: optional<double>
+          memberSkip:
+            docs: |
+              Skip the members that doesn't need to return, for pagination
+            type: optional<double>
+      response: list<_InlinedType6>
+
+    _unnamedOperation17:
+      path: /{classroomHandle}/members/{memberHandle}/sessions
+      method: GET
+      docs: |
+        Returns a list of all levels played by the user for the classroom.
+      path-parameters:
+        classroomHandle:
+          docs: The classroom's `_id`.
+          type: string
+        memberHandle:
+          docs: The classroom member's `_id`.
+          type: string
+      response: list<LevelSessionResponse>
+
+types:
+  LevelSessionResponse:
+    properties:
+      state: optional<_InlinedType2>
+      level: optional<_InlinedType3>
+      levelID:
+        docs: Level slug like `wakka-maul`
+        type: optional<string>
+      creator: optional<commons.objectIdString>
+      playtime:
+        docs: Time played in seconds.
+        type: optional<integer>
+      changed: optional<commons.datetimeString>
+      created: optional<commons.datetimeString>
+      dateFirstCompleted: optional<commons.datetimeString>
+      submitted:
+        docs: For arenas. Whether or not the level has been added to the ladder.
+        type: optional<boolean>
+      published:
+        docs: >-
+          For shareable projects. Whether or not the project has been shared
+          with classmates.
+        type: optional<boolean>
+
+  _InlinedType2:
+    properties:
+      complete: optional<boolean>
+
+  _InlinedType3:
+    properties:
+      original:
+        docs: The id for the level.
+        type: optional<string>
+
+  _InlinedType4:
+    properties:
+      language:
+        docs: Programming language for the classroom
+        type: optional<string>
+
+  _InlinedType5:
+    properties:
+      gamesCompleted: optional<double>
+      playtime:
+        docs: Total play time in seconds
+        type: optional<double>
+
+  _InlinedType6:
+    properties:
+      _id: optional<commons.objectIdString>
+      stats: optional<_InlinedType5>

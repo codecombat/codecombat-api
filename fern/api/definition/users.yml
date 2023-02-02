@@ -1,0 +1,307 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  commons: commons.yml
+
+service:
+  display-name: UsersService
+  auth: true
+  base-path: /
+  endpoints:
+    create:
+      path: /users
+      method: POST
+      docs: |
+        Creates a `User`.
+        #### Example
+        ```javascript
+        url = 'https://codecombat.com/api/users'
+        json = { email: 'an@email.com', name: 'Some Username', role: 'student' }
+        request.post({ url, json, auth })
+        ```
+      request:
+        body:
+          properties:
+            name: string
+            email: string
+            role:
+              docs: >-
+                A `"student"` or `"teacher"`. If unset, a home user will be
+                created, unable to join classrooms.
+              type: optional<UserRole>
+            preferredLanguage: optional<string>
+            heroConfig: optional<HeroConfig>
+            birthday: optional<string>
+
+    get:
+      path: /users/{handle}
+      method: GET
+      docs: Returns a `User`.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: GetUserRequest
+        query-parameters:
+          includePlayTime:
+            docs: Set to non-empty string to include stats.playTime in response
+            type: optional<string>
+      response: commons.UserResponse
+
+    update:
+      path: /users/{handle}
+      method: PUT
+      docs: Modify name of a `User`
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: UpdateUserRequest
+        body:
+          properties:
+            name:
+              docs: Set to new name string
+              type: string
+            birthday:
+              docs: Set the birthday
+              type: optional<string>
+      response: commons.UserResponse
+
+    getClassrooms:
+      path: /users/{handle}/classrooms
+      method: GET
+      docs: >-
+        Returns a list of `Classrooms` this user is in (if a student) or owns
+        (if a teacher).
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: GetClassroomsRequest
+        query-parameters:
+          retMemberLimit:
+            docs: limit the return number of members for each classroom
+            type: optional<double>
+      response: list<commons.ClassroomResponseWithCode>
+
+    getHero:
+      path: /users/{handle}/hero-config
+      method: PUT
+      docs: Set the user's hero.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: GetHeroRequest
+        body:
+          properties:
+            thangType: optional<commons.objectIdString>
+      response: commons.UserResponse
+
+    setAceConfig:
+      path: /users/{handle}/ace-config
+      method: PUT
+      docs: >-
+        Set the user's aceConfig (the settings for the in-game Ace code editor),
+        such as whether to enable autocomplete.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: SetAceConfig
+        body:
+          properties:
+            liveCompletion:
+              docs: >-
+                controls whether autocompletion snippets show up, the default
+                value is true
+              type: optional<boolean>
+            behaviors:
+              docs: >-
+                controls whether things like automatic parenthesis and quote
+                completion happens, the default value is false
+              type: optional<boolean>
+            language:
+              docs: >-
+                only for home users, should be one of ["python", "javascript",
+                "cpp", "lua", "coffeescript"] right now
+              type: optional<string>
+      response: commons.UserResponse
+
+    addOAuthIdentity:
+      path: /users/{handle}/o-auth-identities
+      method: POST
+      docs: >
+        Adds an OAuth2 identity to the user, so that they can be logged in with
+        that identity. You need to send the OAuth code or the access token to
+        this endpoint.
+        1. If no access token is provided, it will use your OAuth2 token URL to
+        exchange the given code for an access token.
+        1. Then it will use the access token (given by you, or received from
+        step 1) to look up the user on your service using the lookup URL, and
+        expects a JSON object in response with an `id` property.
+        1. It will then save that user `id` to the user in our db as a new
+        OAuthIdentity.
+        #### Example
+        ```javascript
+        url = `https://codecombat.com/api/users/${userID}/o-auth-identities`
+        OAUTH_PROVIDER_ID = 'xyz'
+        json = { provider: OAUTH_PROVIDER_ID, accessToken: '1234' }
+        request.post({ url, json, auth}, (err, res) => {
+          console.log(res.body.oAuthIdentities) // [ { provider: 'xyx', id: 'abcd' } ]
+        })
+        ```
+        In this example, we call your lookup URL (let's say,
+        `https://oauth.provider/user?t=<%= accessToken %>`) with the access
+        token (`1234`). The lookup URL returns `{ id: 'abcd' }` in this case,
+        which we save to the user in our db.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: AddOAuthIdentityRequest
+        body:
+          properties:
+            provider:
+              docs: Your OAuth Provider ID.
+              type: string
+            accessToken:
+              docs: >-
+                Will be passed through your lookup URL to get the user ID.
+                Required if no `code`.
+              type: optional<string>
+            code:
+              docs: >-
+                Will be passed to the OAuth token endpoint to get a token.
+                Required if no `accessToken`.
+              type: optional<string>
+      response: commons.UserResponse
+
+    updateSubscription:
+      path: /users/{handle}/subscription
+      method: PUT
+      docs: |
+        Grants a user premium access to the "Home" version up to a certain time.
+        #### Example
+        ```javascript
+        url = `https://codecombat.com/api/users/${userID}/subscription`
+        json = { ends: new Date('2017-01-01').toISOString() }
+        request.put({ url, json, auth }, (err, res) => {
+          console.log(res.body.subscription) // { ends: '2017-01-01T00:00:00.000Z', active: true }
+        })
+        ```
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: UpdateSubscriptionRequest
+        body: commons.#/components/requestBodies/Subscription
+      response: commons.UserResponse
+
+    shortenSubscription:
+      path: /users/{handle}/shorten-subscription
+      method: PUT
+      docs: >
+        If the user already has a premium access up to a certain time, this
+        shortens/revokes his/her premium access.
+        If the ends is less than or equal to the current time, it revokes the
+        subscription and sets the end date to be the current time, else it just
+        shortens the subscription.
+        #### Example
+        ```javascript
+        url = `https://codecombat.com/api/users/${userID}/shorten-subscription`
+        json = { ends: new Date().toISOString() }
+        request.put({ url, json, auth }, (err, res) => {
+          console.log(res.body.subscription.active) // false
+        })
+        ```
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: ShortenSubscriptionRequest
+        body: commons.#/components/requestBodies/Subscription
+      response: commons.UserResponse
+
+    grantLicense:
+      path: /users/{handle}/license
+      method: PUT
+      docs: |
+        Grants a user access to the "Classroom" version up to a certain time.
+        Sets their role to "student".
+        #### Example
+        ```javascript
+        url = `https://codecombat.com/api/users/${userID}/license`
+        json = { ends: new Date('2017-01-01').toISOString() }
+        request.put({ url, json, auth }, (err, res) => {
+          console.log(res.body.license) // { ends: '2017-01-01T00:00:00.000Z', active: true }
+        })
+        ```
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: GrantLicenseRequest
+        body: commons.#/components/requestBodies/Subscription
+      response: commons.UserResponse
+
+    shortenLicense:
+      path: /users/{handle}/shorten-license
+      method: PUT
+      docs: >
+        If the user already has access to the "Classroom" version up to a
+        certain time, this shortens/revokes his/her access.
+        If the ends is less than or equal to the current time, it revokes the
+        enrollment and sets the end date to be the current time, else it just
+        shortens the enrollment.
+        #### Example
+        ```javascript
+        url = `https://codecombat.com/api/users/${userID}/shorten-license`
+        json = { ends: new Date().toISOString() }
+        request.put({ url, json, auth }, (err, res) => {
+          console.log(res.body.license.active) // false
+        })
+        ```
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      request:
+        name: ShortenLicenseRequest
+        body: commons.#/components/requestBodies/Subscription
+      response: commons.UserResponse
+
+    #TODO feels like a chain of endpoint to endpoint actions
+    findUser:
+      path: /user-lookup/{property}/{value}
+      method: GET
+      docs: Redirects to `/users/{handle}` given a unique, identifying property
+      path-parameters:
+        property:
+          docs: The property to lookup by. May either be `"israel-id"` or `"name"`.
+          type: string
+        value:
+          docs: The value to be looked up.
+          type: string
+
+types:
+  UserRole:
+    docs: >-
+      A `"student"` or `"teacher"`. If unset, a home user will be created,
+      unable to join classrooms.
+    enum:
+      - student
+      - teacher
+
+  HeroConfig:
+    properties:
+      thangType: optional<commons.objectIdString>

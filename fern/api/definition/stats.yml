@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+service:
+  display-name: StatsService
+  auth: true
+  base-path: /
+  endpoints:
+    getPlaytimeStats:
+      path: /playtime-stats
+      method: GET
+      docs: Returns the playtime stats
+      request:
+        name: GetPlaytimeStats
+        query-parameters:
+          startDate:
+            docs: Earliest an included user was created
+            type: optional<string>
+          endDate:
+            docs: Latest an included user was created
+            type: optional<string>
+          country:
+            docs: Filter by country string
+            type: optional<string>
+      response: PlaytimeStatsResponse
+
+    getLicenseStats:
+      path: /license-stats
+      method: GET
+      docs: Returns the license stats
+      response: LicenseStatsResponse
+
+types:
+  PlaytimeStatsResponse:
+    properties:
+      playTime:
+        docs: Total play time in seconds
+        type: optional<double>
+      gamesPlayed:
+        docs: Number of levels played
+        type: optional<double>
+
+  LicenseStatsResponse:
+    properties:
+      licenseDaysGranted:
+        docs: Total number of license days granted
+        type: optional<double>
+      licenseDaysUsed:
+        docs: Number of license days used
+        type: optional<double>
+      licenseDaysRemaining:
+        docs: Number of license days remaining
+        type: optional<double>
+      activeLicenses:
+        docs: Number of active/valid licenses
+        type: optional<double>

@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+types:
+  UserResponse:
+    docs: Subset of properties listed here
+    properties:
+      _id: optional<objectIdString>
+      email: optional<string>
+      name: optional<string>
+      slug: optional<string>
+      role: optional<roleString>
+      stats: optional<_InlinedType8>
+      oAuthIdentities: optional<list<_InlinedType9>>
+      subscription: optional<_InlinedType10>
+      license: optional<_InlinedType11>
+
+  _InlinedType7: double
+
+  _InlinedType8:
+    properties:
+      gamesCompleted: optional<double>
+      concepts: optional<map<string, _InlinedType7>>
+      playTime:
+        docs: Included only when specifically requested on the endpoint
+        type: optional<double>
+
+  _InlinedType9:
+    properties:
+      provider: optional<string>
+      id: optional<string>
+
+  _InlinedType10:
+    properties:
+      ends: optional<datetimeString>
+      active: optional<boolean>
+
+  _InlinedType11:
+    properties:
+      ends: optional<datetimeString>
+      active: optional<boolean>
+
+  objectIdString: string
+
+  roleString:
+    docs: Usually either 'teacher' or 'student'
+    type: string
+
+  datetimeString: string
+
+  ClassroomResponseWithCode:
+    docs: Subset of properties listed here
+    properties:
+      _id: optional<objectIdString>
+      name: optional<string>
+      members: optional<list<objectIdString>>
+      ownerID: optional<objectIdString>
+      description: optional<string>
+      code: optional<string>
+      codeCamel: optional<string>
+      courses: optional<list<_InlinedType12>>
+      clanId: optional<objectIdString>
+
+  _InlinedType12:
+    properties:
+      _id: optional<objectIdString>
+      levels: optional<list<map<string, unknown>>>
+      enrolled: optional<list<objectIdString>>
+      instance_id: optional<objectIdString>
+
+  ClassroomResponse:
+    docs: Subset of properties listed here
+    properties:
+      _id: optional<objectIdString>
+      name: optional<string>
+      members: optional<list<objectIdString>>
+      ownerID: optional<objectIdString>
+      description: optional<string>
+      courses: optional<list<_InlinedType13>>
+
+  _InlinedType13:
+    properties:
+      _id: optional<objectIdString>
+      levels: optional<list<map<string, unknown>>>
+      enrolled: optional<list<objectIdString>>
+      instance_id: optional<objectIdString>
