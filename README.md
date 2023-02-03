@@ -4,9 +4,10 @@
 Tagging a release on this repository will update the:
 
 - [Node.js SDK repo](https://github.com/codecombat/codecombat-node)
-- [Java SDK repo](https://github.com/codecombat/codecombat-java)
+- [API Docs](https://github.com/codecombat/docs)
 - [OpenAPI spec repo](https://github.com/codecombat/codecombat-openapi)
 - [Postman collection repo](https://github.com/codecombat/codecombat-postman)
+- (_Coming soon_) [Java SDK repo](https://github.com/codecombat/codecombat-java)
 - _More SDKs to come..._
 
 ## What is in this repository?
