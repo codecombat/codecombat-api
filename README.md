@@ -33,12 +33,6 @@ Generators read in your API Definition and output artifacts (e.g. the TypeScript
 To trigger the generators run:
 
 ```bash
-fern generate --group external --version <version>
-```
-
-To trigger the generators run:
-
-```bash
 # output generated files locally
 fern generate
 
