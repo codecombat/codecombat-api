@@ -69,8 +69,14 @@ types:
     docs: Subset of properties listed here
     properties:
       _id: optional<objectIdString>
-      name: optional<string>
-      members: optional<list<objectIdString>>
-      ownerID: optional<objectIdString>
+      name:
+        type: optional<string>
+        docs: The name of the classroom
+      members:
+        type: optional<list<objectIdString>>
+        docs: List of _ids of the student members of the classroom
+      ownerID:
+        type: optional<objectIdString>
+        docs: The _id of the teacher owner of the classroom.
       description: optional<string>
       courses: optional<list<Course>>
