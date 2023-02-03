@@ -37,7 +37,7 @@ service:
               docs: Name of the classroom
               type: string
             ownerID: commons.objectIdString
-            aceConfig: _InlinedType4
+            aceConfig: AceConfig
 
     upsertFromClassroom:
       display-name: Upsert a User from Classroom
@@ -170,7 +170,7 @@ service:
             docs: |
               Skip the members that doesn't need to return, for pagination
             type: optional<double>
-      response: list<_InlinedType6>
+      response: list<MemberStat>
 
     getLevelSession:
       display-name: Get Level Session
@@ -190,8 +190,8 @@ service:
 types:
   LevelSessionResponse:
     properties:
-      state: optional<_InlinedType2>
-      level: optional<_InlinedType3>
+      state: optional<State>
+      level: optional<Level>
       levelID:
         docs: Level slug like `wakka-maul`
         type: optional<string>
@@ -211,30 +211,30 @@ types:
           with classmates.
         type: optional<boolean>
 
-  _InlinedType2:
+  State:
     properties:
       complete: optional<boolean>
 
-  _InlinedType3:
+  Level:
     properties:
       original:
         docs: The id for the level.
         type: optional<string>
 
-  _InlinedType4:
+  AceConfig:
     properties:
       language:
         docs: Programming language for the classroom
         type: optional<string>
 
-  _InlinedType5:
+  PlayStats:
     properties:
       gamesCompleted: optional<double>
       playtime:
         docs: Total play time in seconds
         type: optional<double>
 
-  _InlinedType6:
+  MemberStat:
     properties:
       _id: optional<commons.objectIdString>
-      stats: optional<_InlinedType5>
+      stats: optional<PlayStats>

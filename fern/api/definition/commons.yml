@@ -9,32 +9,30 @@ types:
       name: optional<string>
       slug: optional<string>
       role: optional<roleString>
-      stats: optional<_InlinedType8>
-      oAuthIdentities: optional<list<_InlinedType9>>
-      subscription: optional<_InlinedType10>
-      license: optional<_InlinedType11>
+      stats: optional<UserStats>
+      oAuthIdentities: optional<list<AuthIdentity>>
+      subscription: optional<Subscription>
+      license: optional<License>
 
-  _InlinedType7: double
-
-  _InlinedType8:
+  UserStats:
     properties:
       gamesCompleted: optional<double>
-      concepts: optional<map<string, _InlinedType7>>
+      concepts: optional<map<string, double>>
       playTime:
         docs: Included only when specifically requested on the endpoint
         type: optional<double>
 
-  _InlinedType9:
+  AuthIdentity:
     properties:
       provider: optional<string>
       id: optional<string>
 
-  _InlinedType10:
+  Subscription:
     properties:
       ends: optional<datetimeString>
       active: optional<boolean>
 
-  _InlinedType11:
+  License:
     properties:
       ends: optional<datetimeString>
       active: optional<boolean>
@@ -57,10 +55,10 @@ types:
       description: optional<string>
       code: optional<string>
       codeCamel: optional<string>
-      courses: optional<list<_InlinedType12>>
+      courses: optional<list<Course>>
       clanId: optional<objectIdString>
 
-  _InlinedType12:
+  Course:
     properties:
       _id: optional<objectIdString>
       levels: optional<list<map<string, unknown>>>
@@ -75,11 +73,4 @@ types:
       members: optional<list<objectIdString>>
       ownerID: optional<objectIdString>
       description: optional<string>
-      courses: optional<list<_InlinedType13>>
-
-  _InlinedType13:
-    properties:
-      _id: optional<objectIdString>
-      levels: optional<list<map<string, unknown>>>
-      enrolled: optional<list<objectIdString>>
-      instance_id: optional<objectIdString>
+      courses: optional<list<Course>>
