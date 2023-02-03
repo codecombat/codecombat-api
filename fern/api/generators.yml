@@ -6,7 +6,7 @@ groups:
         output:
           location: npm
           package-name: '@fern-api/codecombat'
-          token: ${FERN_NPM_TOKEN}
+          token: ${NPM_TOKEN}
         github:
           repository: codecombat/codecombat-node
         config: 
@@ -16,8 +16,8 @@ groups:
         output:
           location: maven
           coordinate: io.github.fern-api:codecombat
-          username: ${FERN_MAVEN_USERNAME}
-          password: ${FERN_MAVEN_PASSWORD}
+          username: ${MAVEN_USERNAME}
+          password: ${MAVEN_PASSWORD}
         github:
           repository: codecombat/codecombat-java
       - name: fernapi/fern-openapi
@@ -28,7 +28,7 @@ groups:
         version: 0.0.34
         output:
           location: postman
-          api-key: ${FERN_POSTMAN_API_KEY}
-          workspace-id: ${FERN_POSTMAN_WORKSPACE_ID}
+          api-key: ${POSTMAN_API_KEY}
+          workspace-id: ${POSTMAN_WORKSPACE_ID}
         github:
           repository: codecombat/codecombat-postman
