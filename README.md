@@ -33,11 +33,7 @@ Generators read in your API Definition and output artifacts (e.g. the TypeScript
 To trigger the generators run:
 
 ```bash
-# output generated files locally
-fern generate
-
-# publish generated files
-fern generate --group publish --version <version>
+fern generate --group external --version <version>
 ```
 
 The publish command currently runs in a GitHub workflow (see [ci.yml](.github/workflows/ci.yml#L32))
