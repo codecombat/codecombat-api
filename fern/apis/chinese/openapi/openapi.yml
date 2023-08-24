@@ -54,7 +54,7 @@ paths:
       description: |
         用 [user](#users) 登陆.
 
-        在这个示例中，我们用准入指令（access token)（`1234`)来call你的查找的URL（lookup URL）（比方说，是 ‘https://oauth.provider/user?t=<%=accessToken%>` 。在这个例子中，返回的查找URL（lookup URL）是 `{ id: 'abcd' }`。我们将数据库中储存的OAuthIdentity用户信息与这个`id`匹配。如果匹配成功，用户即可登录并被引导到主页。    
+        在这个示例中，我们用准入指令（access token)（`1234`)来call你的查找的URL（lookup URL）（比方说，是 `https://oauth.provider/user?t=<%=accessToken%>` 。在这个例子中，返回的查找URL（lookup URL）是 `{ id: 'abcd' }`。我们将数据库中储存的OAuthIdentity用户信息与这个`id`匹配。如果匹配成功，用户即可登录并被引导到主页。    
 
       parameters :
         - name: provider
