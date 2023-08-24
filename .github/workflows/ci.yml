@@ -38,4 +38,4 @@ jobs:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
           POSTMAN_WORKSPACE_ID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: fern generate --group external --version ${{ github.ref_name }} --log-level debug
+        run: fern generate --apis english --group external --version ${{ github.ref_name }} --log-level debug

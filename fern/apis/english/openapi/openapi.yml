@@ -1,0 +1,1026 @@
+swagger: "2.0"
+info:
+  version: "0.0.0"
+  title: CodeCombat API
+  description: |
+    ## Basics
+
+    * Examples are in JavaScript on a Node/Express server with [request](https://github.com/request/request) installed.
+    * Request and responses are in JSON.
+    * API responses are the base resource being created/referenced. So, for example, all routes starting with `/api/users` return [User](#users) resources.
+
+    ## Client Setup
+    
+    We currently do not have a way for you to create or set up your own API Client or OAuth Provider information. Please contact us directly to get started.
+    
+    ## Client Authentication
+    
+    API routes must be called with Basic HTTP Authentication. You will receive a username (CLIENT_ID) and password (CLIENT_SECRET) upon creation of your API Client in our system. Provide those credentials with each API request.
+    
+    ```javascript
+    url = 'https://codecombat.com/api/users'
+    json = { name: 'A username' }
+    auth = { name: CLIENT_ID, pass: CLIENT_SECRET }
+    request.get({ url, json, auth }, (err, res) => console.log(res.statusCode, res.body))
+    ```
+
+    We strongly recommend using a secrets manager for storing your client secret. Plain text files like dotenv lead to accidental, costly leaks. Use [Doppler](https://doppler.com/) for a developer-friendly experience. AWS and Google Cloud have native solutions as well.
+
+    ## User Authentication
+    
+    To authenticate a user on CodeCombat through your service, you will need to use the below OAuth 2 process. CodeCombat will act as the client, and your service will act as the provider.
+    First, you will need to provide a trusted lookup URL and/or a token URL for the setup(See Client Setup above). Then the process from user account creation to log in will look like this:
+    
+    1. **Create the user** using [POST /api/users](#users/post_users).
+    1. **Link the CodeCombat user to an OAuth identity** using [POST /api/users/:handle/o-auth-identities](#users/post_users__handle__o_auth_identities).
+        You can call this API with a code or an access token. If no access token is given, we will use the token URL to exchange the given code for an access token.
+        Then we call the lookup URL with the access token to receive the user information (`id`) from your system which is saved to the user in our db.
+    1. **Log the user in** by redirecting them to [/auth/login-o-auth](#auth/get_auth_login_o_auth).
+        You can call this API with the code/access token, and we will get the user information from your system similarly to step 2.
+        Finally, we match this information with what is stored in our database in step 2. If everything checks out, the user is logged in and redirected to the home page.
+
+    There is also a [concrete example](https://s3.amazonaws.com/files.codecombat.com/codecombat_oauth_example.tar.gz) depicting the above process for better understanding. You can also refer to this [diagram](https://s3.amazonaws.com/files.codecombat.com/Example_OAuth_Flow.png).
+    
+host: codecombat.com
+basePath: /api
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /auth/login-o-auth:
+    get:
+      summary: Login User
+      tags:
+        - auth
+      operationId: loginOauth
+      description: |
+        Logs a user in.
+
+        In this example, we call your lookup URL (let's say, `https://oauth.provider/user?t=<%= accessToken %>`) with the access token (`1234`). The lookup URL returns `{ id: 'abcd' }` in this case. We will match this `id` with the OAuthIdentity stored in the user information in our db. If everything checks out, the user is logged in and redirected to the home page.
+      parameters:
+        - name: provider
+          in: query
+          required: true
+          type: string
+          description: Your OAuth Provider ID
+        - name: accessToken
+          in: query
+          type: string
+          description: Will be passed through your lookup URL to get the user ID. Required if no `code`.
+        - name: code
+          type: string
+          in: query
+          description: Will be passed to the OAuth token endpoint to get a token. Required if no `accessToken`.
+        - name: redirect
+          type: string
+          in: query
+          description: Override where the user will navigate to after successfully logging in.
+        - name: errorRedirect
+          type: string
+          in: query
+          description: If an error happens, redirects the user to this url, with at least query parameters `code`, `errorName` and `message`.
+      responses:
+        "302":
+          description: 'Redirects the user to a landing page after having logged them in.'
+          
+  /users:
+    post:
+      summary: Create User
+      tags: 
+        - users
+      operationId: users-create
+      description: |
+        Creates a `User`.
+      parameters:
+        - name: user
+          in: body
+          schema:
+            type: object
+            required:
+              - name
+              - email
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              role:
+                type: string
+                description: | 
+                  `"student"` or `"teacher"`. If unset, a home user will be created, unable to join classrooms.
+                enum:
+                  - student
+                  - teacher
+              preferredLanguage:
+                type: string
+              heroConfig:
+                type: object
+                properties:
+                  thangType:
+                    $ref: '#/definitions/objectIdString'
+              birthday:
+                type: string
+      responses:
+        "201":
+          description: 'The created user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+            
+  /users/{handle}:
+    get:
+      summary: Get User
+      tags: 
+        - users
+      operationId: users-get
+      description: Returns a `User`.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: includePlayTime
+          in: query
+          description: "Set to non-empty string to include stats.playTime in response"
+          required: false
+          type: string
+      responses:
+        "200":
+          description: 'The requested user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+    put:
+      summary: Update User
+      tags:
+        - users
+      operationId: users-update
+      description: Modify name of a `User`
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: user
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                description: 'Set to new name string'
+              birthday:
+                type: string
+                description: 'Set the birthday'
+      responses:
+        "200":
+          description: 'The affected user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+            
+            
+  /users/{handle}/classrooms:
+    get:
+      summary: Get Classrooms By User
+      tags: 
+        - users
+      operationId: users-get-classrooms
+      description: Returns a list of `Classrooms` this user is in (if a student) or owns (if a teacher).
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: retMemberLimit
+          in: query
+          description: "limit the return number of members for each classroom"
+          required: false
+          type: number
+      responses:
+        "200":
+          description: 'The requested classrooms'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ClassroomResponseWithCode'
+
+  /users/{handle}/hero-config:
+    put:
+      summary: Get User Hero
+      tags: 
+        - users
+      operationId: users-set-hero
+      description: Set the user's hero.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: heroConfig
+          in: body
+          schema:
+            type: object
+            properties:
+              thangType:
+                $ref: '#/definitions/objectIdString'
+      responses:
+        "200":
+          description: 'The affected user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/ace-config:
+    put:
+      summary: Put Ace Config
+      tags: 
+        - users
+      operationId: users-set-ace-config
+      description: Set the user's aceConfig (the settings for the in-game Ace code editor), such as whether to enable autocomplete.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: aceConfig
+          in: body
+          schema:
+            type: object
+            properties:
+              liveCompletion:
+                type: boolean
+                required: false
+                description: 'controls whether autocompletion snippets show up, the default value is true'
+              behaviors:
+                type: boolean
+                required: false
+                description: 'controls whether things like automatic parenthesis and quote completion happens, the default value is false'
+              language:
+                type: string
+                required: false
+                description: 'only for home users, should be one of ["python", "javascript", "cpp", "lua", "coffeescript"] right now'
+      responses:
+        "200":
+          description: 'The affected user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+ 
+  /users/{handle}/o-auth-identities:
+    post:
+      tags:
+        - users
+      summary: Add Oauth2 Identity
+      description: |
+        Adds an OAuth2 identity to the user, so that they can be logged in with that identity. You need to send the OAuth code or the access token to this endpoint.
+        
+        1. If no access token is provided, it will use your OAuth2 token URL to exchange the given code for an access token.
+        2. Then it will use the access token (given by you, or received from step 1) to look up the user on your service using the lookup URL, and expects a JSON object in response with an `id` property.
+        3. It will then save that user `id` to the user in our db as a new OAuthIdentity.
+
+        In this example, we call your lookup URL (let's say, `https://oauth.provider/user?t=<%= accessToken %>`) with the access token (`1234`). The lookup URL returns `{ id: 'abcd' }` in this case, which we save to the user in our db.
+
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: oAuthIdentity
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - provider
+            properties:
+              provider:
+                type: string
+                description: Your OAuth Provider ID.
+              accessToken:
+                type: string
+                description: Will be passed through your lookup URL to get the user ID. Required if no `code`.
+              code:
+                type: string
+                description: Will be passed to the OAuth token endpoint to get a token. Required if no `accessToken`.
+                
+      responses:
+        "200":
+          description: 'The affected user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/subscription:
+    put:
+      tags:
+        - users
+      summary: Put Subscription
+      operationId: users-grant-premium-subscription
+      description: |
+        Grants a user premium access to the "Home" version up to a certain time.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: subscription
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ends
+            properties:
+              ends:
+                $ref: '#/definitions/datetimeString'
+      responses:
+        "200":
+          description: 'The affected user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/shorten-subscription:
+    put:
+      tags:
+        - users
+      summary: Shorten User Subscription
+      operationId: users-shorten-subscription
+      description: |
+        If the user already has a premium access up to a certain time, this shortens/revokes his/her premium access.
+        If the ends is less than or equal to the current time, it revokes the subscription and sets the end date to be the current time, else it just shortens the subscription.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: subscription
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ends
+            properties:
+              ends:
+                $ref: '#/definitions/datetimeString'
+      responses:
+        "200":
+          description: 'The affected user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/license:
+    put:
+      tags:
+        - users
+      summary: Grant User License
+      operationId: users-grant-license
+      description: |
+        Grants a user access to the "Classroom" version up to a certain time.
+        Sets their role to "student".
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: license
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ends
+            properties:
+              ends:
+                $ref: '#/definitions/datetimeString'
+      responses:
+        "200":
+          description: 'The affected user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/shorten-license:
+    put:
+      summary: Shorten User License
+      tags:
+        - users
+      operationId: users-shorten-license
+      description: |
+        If the user already has access to the "Classroom" version up to a certain time, this shortens/revokes his/her access.
+        If the ends is less than or equal to the current time, it revokes the enrollment and sets the end date to be the current time, else it just shortens the enrollment.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: license
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ends
+            properties:
+              ends:
+                $ref: '#/definitions/datetimeString'
+      responses:
+        "200":
+          description: 'The affected user'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /clan/{handle}/members:
+    put:
+      tags:
+        - clans
+      summary: Upsert User Into Clan
+      operationId: clans-upsert-member
+      description: Upserts a user into the clan.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: member
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                description: "The `_id` or `slug` of the user to add to the clan."
+                type: string
+      responses:
+        "200":
+          description: 'The clan with the member added.'
+          schema:
+            $ref: '#/definitions/ClanResponse'
+
+  /classrooms:
+    post:
+      tags:
+        - classrooms
+      summary: Create a classroom
+      operationId: classrooms-create
+      description: Creates a new empty `Classroom`.
+      parameters:
+        - name: classroom
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+              - ownerID
+              - aceConfig
+            properties:
+              name:
+                type: string
+                description: Name of the classroom
+              ownerID:
+                $ref: '#/definitions/objectIdString'
+                description: The `_id` of the teacher for whom classroom is being created
+              aceConfig:
+                type: object
+                properties:
+                  language:
+                    type: string
+                    description: Programming language for the classroom
+      responses:
+        "201":
+          description: 'The created classroom'
+          schema:
+            $ref: '#/definitions/ClassroomResponseWithCode'
+
+    get:
+      summary: Get Classroom Details
+      tags:
+        - classrooms
+      operationId: classrooms-get
+      description: Returns the classroom details for a class code.
+      parameters:
+        - name: code
+          in: query
+          type: string
+          required: true
+          description: The classroom's `code`.
+        - name: retMemberLimit
+          in: query
+          description: "limit the return number of members for the classroom"
+          required: false
+          type: number
+      responses:
+        "200":
+          description: 'The classroom details.'
+          schema:
+            $ref: '#/definitions/ClassroomResponseWithCode'
+
+  /classrooms/{handle}/members:
+    put:
+      tags:
+        - classrooms
+      operationId: classrooms-upsert-member
+      summary: Upsert a user from classroom
+      description: Upserts a user into the classroom.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: member 
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - code
+              - userId
+            properties:
+              code:
+                type: string
+                description: "The code for joining this classroom"
+              userId:
+                description: "The `_id` or `slug` of the user to add to the class."
+                type: string
+              retMemberLimit:
+                description: "limit the return number of members for the classroom, the default value is 1000"
+                type: number
+      responses:
+        "200":
+          description: 'The classroom with the member added.'
+          schema:
+            $ref: '#/definitions/ClassroomResponse'
+    delete:
+      summary: Delete User from Classroom
+      tags:
+        - classrooms
+      operationId: classrooms-remove-member
+      description: Remove a user from the classroom.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: member
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                description: "The `_id` or `slug` of the user to remove from the class."
+                type: string
+              retMemberLimit:
+                description: "limit the return number of members for the classroom, the default value is 1000"
+                type: number
+      responses:
+          "200":
+            description: 'The classroom with the member removed.'
+            schema:
+              $ref: '#/definitions/ClassroomResponse'
+    
+        
+  /classrooms/{classroomHandle}/courses/{courseHandle}/enrolled:
+    put:
+      summary: Enroll User in a Course
+      tags:
+        - classrooms
+      operationId: classrooms-enroll-user-in-course
+      description: |
+        Enrolls a user in a course in a classroom.
+        If the course is paid, user must have an active license.
+        User must be a member of the classroom.
+      parameters:
+        - name: classroomHandle
+          in: path
+          type: string
+          required: true
+          description: The classroom's `_id`.
+        - name: courseHandle
+          in: path
+          type: string
+          required: true
+          description: The course's `_id`.
+        - name: userId
+          description: "The `_id` or `slug` of the user to add to the class."
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                $ref: '#/definitions/objectIdString'
+        - name: retMemberLimit
+          in: query
+          description: "limit the return number of members for the classroom, the default value is 1000"
+          required: false
+          type: number
+
+      responses:
+        "200":
+          description: 'The classroom with the user enrolled.'
+          schema:
+            $ref: '#/definitions/ClassroomResponse'
+
+  /classrooms/{classroomHandle}/courses/{courseHandle}/remove-enrolled:
+    put:
+      summary: Remove User from a classroom
+      tags:
+        - classrooms
+      operationId: classrooms-remove-enrolled-user
+      description: |
+        Removes an enrolled user from a course in a classroom.
+      parameters:
+        - name: classroomHandle
+          in: path
+          type: string
+          required: true
+          description: The classroom's `_id`.
+        - name: courseHandle
+          in: path
+          type: string
+          required: true
+          description: The course's `_id`.
+        - name: userId
+          description: "The `_id` or `slug` of the user to remove from the course."
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                $ref: '#/definitions/objectIdString'
+        - name: retMemberLimit
+          in: query
+          description: "limit the return number of members for the classroom, the default value is 1000"
+          required: false
+          type: number
+      responses:
+        "200":
+          description: 'The classroom with the user removed from the course.'
+          schema:
+            $ref: '#/definitions/ClassroomResponse'
+            
+  /classrooms/{classroomHandle}/stats:
+    get:
+      summary: Get Member Stats 
+      tags:
+        - classrooms
+      operationId: classrooms-get-members-stats
+      description: |
+        Returns a list of all members stats for the classroom.
+      parameters:
+        - name: classroomHandle
+          in: path
+          type: string
+          required: true
+          description: The classroom's `_id`.
+        - name: project
+          in: query
+          type: string
+          description: |
+            If specified, include only the specified projection of returned stats; else, return all stats. Format as a comma-separated list, like `creator,playtime,state.complete`.
+          required: false
+        - name: memberLimit
+          in: query
+          type: number
+          description: 'Limit the return member number. the default value is 10, and the max value is 100'
+          required: false
+        - name: memberSkip
+          in: query
+          type: number
+          description: |
+            Skip the members that doesn't need to return, for pagination
+          required: false
+
+      responses:
+        "200":
+          description: 'The members stats for the classroom.'
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                _id:
+                  $ref: '#/definitions/objectIdString'
+                stats:
+                  type: object
+                  properties:
+                    gamesCompleted:
+                      type: number
+                    playtime:
+                      type: number
+                      description: "Total play time in seconds"
+
+  /classrooms/{classroomHandle}/members/{memberHandle}/sessions:
+    get:
+      summary: Get Level Session
+      tags:
+        - classrooms
+      operationId: classrooms-get-levels-played
+      description: |
+        Returns a list of all levels played by the user for the classroom.
+      parameters:
+        - name: classroomHandle
+          in: path
+          type: string
+          required: true
+          description: The classroom's `_id`.
+        - name: memberHandle
+          in: path
+          type: string
+          required: true
+          description: The classroom member's `_id`.
+      responses:
+        "200":
+          description: 'The classroom with the user enrolled.'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/LevelSessionResponse'
+            
+  /user-lookup/{property}/{value}:
+    get:
+      summary: Search for User
+      tags:
+        - users
+      operationId: users-lookup
+      description: Redirects to `/users/{handle}` given a unique, identifying property
+      parameters:
+        - name: property
+          in: path
+          type: string
+          required: true
+          description: The property to lookup by. May either be `"israel-id"` or `"name"`.
+        - name: value
+          in: path
+          type: string
+          required: true
+          description: The value to be looked up.
+      responses:
+        "301":
+          description: "Redirect to `User` resource at `/users/{handle}`"
+
+  /playtime-stats:
+    get:
+      summary: Get Playtime Stats
+      tags:
+        - stats
+      operationId: stats-get-playtime-stats
+      description: Returns the playtime stats
+      parameters:
+        - name: startDate
+          in: query
+          description: "Earliest an included user was created"
+          required: false
+          type: string
+        - name: endDate
+          in: query
+          description: "Latest an included user was created"
+          required: false
+          type: string
+        - name: country
+          in: query
+          description: "Filter by country string"
+          required: false
+          type: string
+
+      responses:
+        "200":
+          description: "Returns the playtime stats accross all owned users."
+          schema:
+            $ref: '#/definitions/PlaytimeStatsResponse'
+
+  /license-stats:
+    get:
+      summary: Get License Stats
+      tags:
+        - stats
+      operationId: stats-get-license-stats
+      description: Returns the license stats
+
+      responses:
+        "200":
+          description: "Returns the license stats for classroom/home subscription licenses."
+          schema:
+            $ref: '#/definitions/LicenseStatsResponse'
+
+parameters:
+  handlePathParameter:
+    name: handle
+    in: path
+    type: string
+    required: true
+    description: The document's `_id` or `slug`.
+    
+tags:
+  - name: "users"
+
+securityDefinitions:
+  basicAuth:
+    type: basic
+    description: HTTP Basic Authentication. We will need to provide you with your client ID and secret.
+    
+security:
+  - basicAuth: []
+
+definitions:
+  roleString:
+    type: string
+    description: "Usually either 'teacher' or 'student'"
+
+  datetimeString:
+    type: string
+    pattern: /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}\.\d{3}Z$/
+    
+  objectIdString:
+    type: string
+    pattern: /^[0-9a-f]{24}$/
+
+  UserResponse:
+    type: object
+    title: 'UserResponse'
+    description: 'Subset of properties listed here'
+    properties:
+      _id:
+        $ref: '#/definitions/objectIdString'
+      email: 
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      role:
+        $ref: '#/definitions/roleString'
+      stats:
+        type: object
+        properties:
+          gamesCompleted:
+            type: number
+          concepts:
+            type: object
+            additionalProperties:
+              type: number
+          playTime:
+            type: number
+            description: 'Included only when specifically requested on the endpoint'
+      oAuthIdentities:
+        type: array
+        items:
+          type: object
+          properties:
+            provider:
+              type: string
+            id:
+              type: string
+      subscription:
+        type: object
+        properties:
+          ends:
+            $ref: '#/definitions/datetimeString'
+          active:
+            type: 'boolean'
+      license:
+        type: object
+        properties:
+          ends:
+            $ref: '#/definitions/datetimeString'
+          active:
+            type: 'boolean'
+
+  ClassroomResponse:
+    type: object
+    title: 'ClassroomResponse'
+    description: 'Subset of properties listed here'
+    properties:
+      _id:
+        $ref: '#/definitions/objectIdString'
+      name:
+        type: string
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/objectIdString'
+      ownerID:
+        $ref: '#/definitions/objectIdString'
+      description:
+        type: string
+      courses:
+        type: array
+        items:
+          type: object
+          properties:
+            _id:
+              $ref: '#/definitions/objectIdString'
+            levels:
+              type: array
+              items:
+                type: object
+            enrolled:
+              type: array
+              items:
+                $ref: '#/definitions/objectIdString'
+            instance_id:
+              $ref: '#/definitions/objectIdString'
+
+  ClassroomResponseWithCode:
+    type: object
+    title: 'ClassroomResponseWithCode'
+    description: 'Subset of properties listed here'
+    properties:
+      _id:
+        $ref: '#/definitions/objectIdString'
+      name:
+        type: string
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/objectIdString'
+      ownerID:
+        $ref: '#/definitions/objectIdString'
+      description:
+        type: string
+      code:
+        type: string
+      codeCamel:
+        type: string
+      courses:
+        type: array
+        items:
+          type: object
+          properties:
+            _id:
+              $ref: '#/definitions/objectIdString'
+            levels:
+              type: array
+              items:
+                type: object
+            enrolled:
+              type: array
+              items:
+                $ref: '#/definitions/objectIdString'
+            instance_id:
+              $ref: '#/definitions/objectIdString'
+      clanId:
+        $ref: '#/definitions/objectIdString'
+
+  PlaytimeStatsResponse:
+    type: object
+    properties:
+      playTime:
+        type: number
+        description: "Total play time in seconds"
+      gamesPlayed:
+        type: number
+        description: "Number of levels played"
+
+  LicenseStatsResponse:
+    type: object
+    properties:
+      licenseDaysGranted:
+        type: number
+        description: "Total number of license days granted"
+      licenseDaysUsed:
+        type: number
+        description: "Number of license days used"
+      licenseDaysRemaining:
+        type: number
+        description: "Number of license days remaining"
+      activeLicenses:
+        type: number
+        description: "Number of active/valid licenses"
+
+  LevelSessionResponse:
+    type: object
+    properties:
+      state:
+        type: object
+        properties:
+          complete:
+            type: boolean
+      level:
+        type: object
+        properties:
+          original:
+            type: string
+            description: 'The id for the level.'
+      levelID:
+        type: 'string'
+        description: 'Level slug like `wakka-maul`'
+      creator:
+        type: 'string'
+        $ref: '#/definitions/objectIdString'
+      playtime:
+        type: 'integer'
+        description: 'Time played in seconds.'
+      changed:
+        $ref: '#/definitions/datetimeString'
+      created:
+        $ref: '#/definitions/datetimeString'
+      dateFirstCompleted:
+        $ref: '#/definitions/datetimeString'
+      submitted:
+        type: 'boolean'
+        description: 'For arenas. Whether or not the level has been added to the ladder.'
+      published:
+        type: 'boolean'
+        description: 'For shareable projects. Whether or not the project has been shared with classmates.'
+
+  ClanResponse:
+    type: object
+    title: 'ClanResponse'
+    description: 'Subset of properties listed here'
+    properties:
+      _id:
+        $ref: '#/definitions/objectIdString'
+      name:
+        type: string
+      displayName:
+        type: string
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/objectIdString'
+      ownerID:
+        $ref: '#/definitions/objectIdString'
+      description:
+        type: string
+      type:
+        type: string
+      kind:
+        type: string
+      metadata:
+        type: object

@@ -1,0 +1,1025 @@
+swagger: "2.0"
+info:
+  version: "0.0.0"
+  title: CodeCombat开发者接口
+  description: |
+    ## 基本情况
+
+    * 开发者在Node/Express服务器上安装了以下 [请求](https://github.com/request/request)，示例采用JavaScript形式。   
+    * 请求和反馈形式为JSON。
+    * API接口是创建或者参考的基础资源。因此，举例来说，所有的开发路径(routes)是以'/api/users'开始，返回[User](#users)开发资源。
+
+    ## 客户设置
+    目前我们没有让您创建或者设置您自己的客户级开发者接口(API Client)或者OAuth提供者（OAuth Privider)信息。请直接联系我们启动您的开发进程。
+    
+    ## 用户授权
+    系统必须通过基础HTTP授权（Basic HTTP Authentication）来启动API路径。在我们的系统中创建你的API客户（API_CLIENT）之后，你会获得一个用户名（CLIENT_ID）和密码（CLIENT_SECRET）。对于每一个API请求，请提供你的姓名（CLIENT_ID）和密码（CLIENT_SECRET）。
+    
+    ```javascript
+    url = 'https://koudashijie.com/api/users'
+    json = { name: 'A username' }
+    auth = { name: CLIENT_ID, pass: CLIENT_SECRET }
+    request.get({ url, json, auth }, (err, res) => console.log(res.statusCode, res.body))
+    ```
+
+    ## 用户授权
+    通过您的服务在CodeCombat平台上认证一个用户，您需要采用以下oAuth 2流程. CodeCombat作为一个客户，您的服务作为服务提供者。首先，您需要提供一个可信的查找网址（lookup URL 或者 token URL），来进行创建设置（参见以上客户创建说明），这个创建账户和登陆的过程如以下所示:
+
+    1. **创建用户** 使用[POST/api/users](#users/post_users).
+    1. **把CodeCombat用户和一个oAuth身份对接** 使用[POST/api/users/:handle/o-auth-identities](#users/post_users__handle__o_auth_identities).
+        你可以使用代码或者准入指令（access token)来启动这个API嵌入。如果你没有获得准入指令（access token)，我们会用这个URL指令来替换原有的代码来获得一个准入指令（access token)。
+        然后我们用准入指令（access token)来启动查找网址（lookup URL)，以此从你的系统中获得用户信息(`id`)，这些信息已被储存在我们的用户数据库中。
+    1. **用户登陆** 重新引导用户到以下路径 [/auth/login-o-auth](#auth/get_auth_login_o_auth).
+        你可以用这个代码/准入指令（access token)来call API, 然后我们会通过类似于第二步中的步骤来获得用户信息。
+        最后，我们将数据库在第二步中获得的信息与这个信息进行匹配，如果匹配成功，用户即可完成登录并被引导到主页。
+
+    这里还有一个描述以上过程的 [实例](https://s3.amazonaws.com/files.codecombat.com/codecombat_oauth_example.tar.gz)，以便理解。 同时，你也可以参考这个 [图表](https://s3.amazonaws.com/files.codecombat.com/Example_OAuth_Flow.png)。
+
+host: koudashijie.com
+basePath: /api
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /auth/login-o-auth:
+    get:
+      summary: 登录用户
+      tags:
+        - auth
+      operationId: loginOauth
+      description: |
+        用 [user](#users) 登陆.
+
+        在这个示例中，我们用准入指令（access token)（`1234`)来call你的查找的URL（lookup URL）（比方说，是 ‘https://oauth.provider/user?t=<%=accessToken%>` 。在这个例子中，返回的查找URL（lookup URL）是 `{ id: 'abcd' }`。我们将数据库中储存的OAuthIdentity用户信息与这个`id`匹配。如果匹配成功，用户即可登录并被引导到主页。    
+
+      parameters :
+        - name: provider
+          in: query
+          required: true
+          type: string
+          description: 你的授权（oAuth)提供者ID
+        - name: accessToken
+          in: query
+          type: string
+          description: 通过传输你的查询网址以便于拿到用户ID。如果没有“代码”这一环节是必须项。
+        - name: code
+          type: string
+          in: query
+          description: 通过传输到授权指令的终端以便于拿到指令。如果没有“代码”这一环节是必须项。如果没有`accessToken`（“访问指令”）这一环节是必须项。
+        - name: redirect
+          type: string
+          in: query
+          description: 登陆成功后，用户导航路径会被清除。
+        - name: errorRedirect
+          type: string
+          in: query
+          description: 如果错误出现，将用户重置于这个网址，请求参数至少需要`code`（“代码”）、`errorName`（“错误名称”）和`message`（“消息”）等字段。
+      responses:
+        "302":
+          description: '用户成功登录以后，将用户重置于登陆页面。'
+ 
+  /users:
+    post:
+      summary: 创建用户
+      tags: 
+        - users
+      operationId: users-create
+      description: |
+        创建一个`User`（“用户”）
+
+      parameters: 
+        - name: user 
+          in: body
+          schema:
+            type: object
+            required:
+              - name
+              - email
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              role:
+                type: string
+                description: | 
+                  `"student"` 或者 `"teacher"`
+                enum:
+                  - student
+                  - teacher
+              preferredLanguage:
+                type: string
+              heroConfig:
+                type: object
+                properties:
+                  thangType:
+                    $ref: '#/definitions/objectIdString'
+              birthday:
+                type: string
+      responses:
+        "201":
+          description: '已经创建的用户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}:
+    get:
+      summary: 获取用户
+      tags: 
+        - users
+      operationId: users-get
+      description: 返回一个`User`（“用户”）。
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: includePlayTime
+          in: query
+          description: "设置非空字符串包括反馈函数stats.playTime"
+          required: false
+          type: string
+      responses:
+        "200":
+          description: '需求用户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+    put:
+      tags:
+        - users
+      operationId: users-update
+      description: 修改一个 `User`("用户") 的姓名
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: user
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: '设置一个新姓名'
+              birthday:
+                type: string
+                description: '设置生日'
+      responses:
+        "200":
+          description: '影响的用户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+            
+ 
+
+  /users/{handle}/classrooms:
+    get:
+      summary: 按用户获取教室
+      tags: 
+        - users
+      operationId: users-get-classrooms
+      description: 返回`Clasrooms`（“教室”）清单，这个用户（如果是学生）在教室里或者是教室的主人（如果是老师）。
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: retMemberLimit
+          in: query
+          description: "设置返回的教室中显示的学生数量"
+          required: false
+          type: number
+      responses:
+        "200":
+          description: '教室需求'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ClassroomResponseWithCode'
+
+  /users/{handle}/hero-config:
+    put:
+      summary: 获取用户英雄
+      tags: 
+        - users
+      operationId: users-set-hero
+      description: 设置用户的英雄。
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: heroConfig
+          in: body
+          schema:
+            type: object
+            properties:
+              thangType:
+                $ref: '#/definitions/objectIdString'
+      responses:
+        "200":
+          description: '受影响的客户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/ace-config:
+    put:
+      summary: 设置用户的代码配置
+      tags: 
+        - users
+      operationId: users-set-ace-config
+      description: 设置用户的代码配置 ( 指用户在编辑器中可以修改的设置 ) , 如代码补全等.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: aceConfig
+          in: body
+          schema:
+            type: object
+            properties:
+              liveCompletion:
+                type: boolean
+                description: '控制代码自动补全提示是否出现, 默认值是 true'
+              behaviors:
+                type: boolean
+                description: '控制括号, 引号是否自动补齐, 默认值是 false'
+              language:
+                type: string
+                description: '控制个人账号(学生账号无效)使用的语言, 目前仅支持 python, javascript, cpp, lua, coffeescript'
+      responses:
+        "200":
+          description: '受影响的客户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+
+  /users/{handle}/o-auth-identities:
+    post:
+      summary: 将一个OAuth2身份
+      tags:
+        - users
+      operationId: users-link-oauth-identity
+      description: |
+        将一个OAuth2身份（OAuth2 identity）加给用户，用户可以以此身份登录。你需要将一个OAuth代码或者准入指令（access token)发送到这个端口。 
+        
+        1. 如果没有获得准入指令（access token)的话，系统会使用OAuth2指令URL（OAuth2 token URL）来交换获得的代码，以此获得准入指令（access token)。         
+        2. 然后系统会在你的服务上使用查找URL（lookup URL）爱你的通过准入指令（access token) （改指令可能是你之前给予的，或者是在第一步中获得的）来查找这名用户。 并预计获得一个回应一个`id`属性的JSON对象。
+        3. 之后系统将保存用户`id`到我们的用户数据库中，作为一个新的OAuthIdentity.
+
+        在这个示例中, 我们用准入指令（access token)（`1234`)来call你的查找网址（lookup URL)（比方说是 `https://oauth.provider/user?t=<%= accessToken %>`）然后查找网址（lookup URL)返回`{ id: 'abcd' }`，我们已经将这个用户储存到我们的数据库中了。
+
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: oAuthIdentity
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - provider
+            properties:
+              provider:
+                type: string
+                description: 你的授权提供者 ID （OAuth Provider ID）。
+              accessToken:
+                type: string
+                description: 将传输查询网址得到用户ID。如果没有`code`（“代码”）需要这一项。
+              code:
+                type: string
+                description: 将传输授权指令终点得到令牌。如果没有`accessToken`(“访问令牌”)需要这一项。
+        
+      responses:
+        "200":
+          description: '受影响用户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/subscription:
+    put:
+      summary: 授予订阅
+      tags:
+        - users
+      operationId: users-grant-premium-subscription
+      description: |
+        在一段时间内授权用户访问“主页”版本的高级访问权限。
+        
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: subscription
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ends
+            properties:
+              ends:
+                $ref: '#/definitions/datetimeString'
+      responses:
+        "200":
+          description: '受影响用户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/shorten-subscription:
+    put:
+      summary: 撤销他的高级访问权限
+      tags:
+        - users
+      operationId: users-shorten-subscription
+      description: |
+        如果用户在一段时间已经有了高级访问权限，这将缩短/撤销他的高级访问权限。
+        如果结束时间少于或者等于现在时间，将撤销订阅权限并将结束时间设置为现在时间，否则将缩短订阅时间。
+        
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: subscription
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ends
+            properties:
+              ends:
+                $ref: '#/definitions/datetimeString'
+      responses:
+        "200":
+          description: '受影响客户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/license:
+    put:
+      summary: 格兰特“课堂”版
+      tags:
+        - users
+      operationId: users-grant-license
+      description: |
+        在一段时间内给予用户使用“教室”版本的权限。定义他们的角色为`"student"`（“学生”）。
+        
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: license
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ends
+            properties:
+              ends:
+                $ref: '#/definitions/datetimeString'
+      responses:
+        "200":
+          description: '受影响用户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /users/{handle}/shorten-license:
+    put:
+      summary: 缩短用户许可
+      tags:
+        - users
+      operationId: users-shorten-license
+      description: |
+        如果用户在一定时间内已经登陆“教室”版本，这将缩短或撤销他的权限。
+        如果结束比现在时间短或者和现在时间相同， 这将撤销登陆，并将结束时间设置为当前时间，否则这将缩短注册时间。
+
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: license
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ends
+            properties:
+              ends:
+                $ref: '#/definitions/datetimeString'
+      responses:
+        "200":
+          description: '受影响客户'
+          schema:
+            $ref: '#/definitions/UserResponse'
+
+  /clan/{handle}/members:
+    put:
+      summary: 将用户添加到部落
+      tags:
+        - clans
+      operationId: clans-upsert-member
+      description: 在部落中加入一个用户
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: member
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                description: "使用字符串 `_id` 或 `slug` 来识别要加入部落的用户."
+                type: string
+      responses:
+        "200":
+          description: '返回加入了新成员的部落'
+          schema:
+            $ref: '#/definitions/ClanResponse'
+
+
+  /classrooms:
+    post:
+      summary: 创建一个教室
+      tags:
+        - classrooms
+      operationId: classrooms-create
+      description: 创建一个新的空“教室”
+      parameters:
+        - name: classroom
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+              - ownerID
+              - aceConfig
+            properties:
+              name:
+                type: string
+                description: 教室名称
+              ownerID:
+                $ref: '#/definitions/objectIdString'
+                description: 教师 `_id` 是指哪间教室被创建了
+              aceConfig:
+                type: object
+                properties:
+                  language:
+                    type: string
+                    description: 适合教室的编程语言
+      responses:
+        "201":
+          description: '创建的教室'
+          schema:
+            $ref: '#/definitions/ClassroomResponseWithCode'
+
+    get:
+      summary:  获得一间教室
+      tags:
+        - classrooms
+      operationId: classrooms-get
+      description: 教室模式之返回教室细节.
+      parameters:
+        - name: code
+          in: query
+          type: string
+          required: true
+          description: 教室 `code`（”代码”）
+        - name: retMemberLimit
+          in: query
+          description: "设置返回的教室中显示的学生数量"
+          required: false
+          type: number
+      responses:
+        "200":
+          description: '教室细节'
+          schema:
+            $ref: '#/definitions/ClassroomResponseWithCode'
+
+  /classrooms/{handle}/members:
+    put:
+      summary: 添加会员
+      tags:
+        - classrooms
+      operationId: classrooms-upsert-member
+      description: 在教室插入一个用户.
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: member
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - code
+              - userId
+            properties:
+              code:
+                type: string
+                description: "加入教室需使用代码"
+              userId:
+                description: "使用字符串 `_id` 或`slug` 用来在教室中增加用户."
+                type: string
+              retMemberLimit:
+                description: "设置返回的教室中显示的学生数量, 默认值为 1000"
+                type: number
+      responses:
+        "200":
+          description: '教室中新增新成员'
+          schema:
+            $ref: '#/definitions/ClassroomResponse'
+
+    delete:
+      tags:
+        - classrooms
+      summary: 从教室中移出一个学生
+      operationId: classrooms-remove-member
+      description: 从教室中移出一个学生
+      parameters:
+        - $ref: '#/parameters/handlePathParameter'
+        - name: member
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                description: "使用字符串 `_id` 或`slug` 用来从教室中移出用户."
+                type: string
+              retMemberLimit:
+                description: "设置返回的教室中显示的学生数量, 默认值为 1000"
+                type: number
+      responses:
+          "200":
+            description: '移出了学生的教室'
+            schema:
+              $ref: '#/definitions/ClassroomResponse'
+ 
+        
+  /classrooms/{classroomHandle}/courses/{courseHandle}/enrolled:
+    put:
+      summary: 在课程中注册用户
+      tags:
+        - classrooms
+      operationId: classrooms-enroll-user-in-course
+      description: |
+        在一个教室里的一门课程上注册一个用户。
+        如果课程是付费课程，用户需要一个有效的订阅许可。
+        用户必须是教室中的一个成员。
+      parameters:
+        - name: classroomHandle
+          in: path
+          type: string
+          required: true
+          description: 教室 `_id`.
+        - name: courseHandle
+          in: path
+          type: string
+          required: true
+          description: 课程 `_id`.
+        - name: userId
+          description: "用户的`_id`或者`slug`需要添加到教室中。"
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                $ref: '#/definitions/objectIdString'
+        - name: retMemberLimit
+          in: query
+          description: "设置返回的教室中显示的学生数量, 默认值为 1000"
+          required: false
+          type: number
+
+      responses:
+        "200":
+          description: '教室并且用户加入其中。'
+          schema:
+            $ref: '#/definitions/ClassroomResponse'
+
+  /classrooms/{classroomHandle}/courses/{courseHandle}/remove-enrolled:
+    put:
+      tags:
+        - classrooms
+      summary: 删除注册用户
+      operationId: classrooms-remove-enrolled-user
+      description: |
+        将用户从注册的课程和教室中移除。
+      parameters:
+        - name: classroomHandle
+          in: path
+          type: string
+          required: true
+          description: 教室`_id`.
+        - name: courseHandle
+          in: path
+          type: string
+          required: true
+          description: 课程`_id`.
+        - name: userId
+          description: "用户的`_id`或者`slug`。"
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                $ref: '#/definitions/objectIdString'
+        - name: retMemberLimit
+          in: query
+          description: "设置返回的教室中显示的学生数量, 默认值为 1000"
+          required: false
+          type: number
+      responses:
+        "200":
+          description: '教室中，将用户移除课程。'
+          schema:
+            $ref: '#/definitions/ClassroomResponse'
+
+  /classrooms/{classroomHandle}/stats:
+    get:
+      summary: 获取会员统计信息
+      tags:
+        - classrooms
+      operationId: classrooms-get-members-stats
+      description: |
+        返回教室中所有学生的相关数据
+      parameters:
+        - name: classroomHandle
+          in: path
+          type: string
+          required: true
+          description: 教室 `_id`.
+        - name: project
+          in: query
+          type: string
+          description: |
+            限制返回的数据内容, 由以下字符串按逗号连接组成: ["creator", "playtime", "state.complete"...]
+          required: false
+        - name: memberLimit
+          in: query
+          type: number
+          description: '返回值中的学生数量, 默认为 10, 最大值为 100'
+          required: false
+        - name: memberSkip
+          in: query
+          type: number
+          description: '返回值中跳过的学生数量, 和 memberLimit 共同起到分页作用'
+          required: false
+          
+      responses:
+        "200":
+          description: |
+            返回教室中所有学生的相关数据
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                _id:
+                  $ref: '#/definitions/objectIdString'
+                stats:
+                  type: object
+                  properties:
+                    gamesCompleted:
+                      type: number
+                    playtime:
+                      type: number
+                      description: "游戏时间（秒）"
+
+
+  /classrooms/{classroomHandle}/members/{memberHandle}/sessions:
+    get:
+      summary: 玩过关卡
+      tags:
+        - classrooms
+      operationId: classrooms-get-levels-played
+      description: |
+        返回这个教室中用户所玩得所有关卡.
+      parameters:
+        - name: classroomHandle
+          in: path
+          type: string
+          required: true
+          description: 教室 `_id`.
+        - name: memberHandle
+          in: path
+          type: string
+          required: true
+          description: 教室成员 `_id`.
+      responses:
+        "200":
+          description: '教室的用户已经注册.'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/LevelSessionResponse'
+
+  /user-lookup/{property}/{value}:
+    get:
+      summary: 搜索用户
+      tags:
+        - users
+      operationId: users-lookup
+      description: 采用唯一、可识别属性重新定向到`/users/{handle}`
+      parameters:
+        - name: property
+          in: path
+          type: string
+          required: true
+          description: 查找属性对应字符串，也许是 `"israel-id"` 或者 `"name"`.
+        - name: value
+          in: path
+          type: string
+          required: true
+          description: 查找的值.
+      responses:
+        "301":
+          description: "重新定位用户的资源到`/users/{handle}`"
+
+  /playtime-stats:
+    get:
+      summary: 获取游戏时间统计数据
+      tags:
+        - stats
+      operationId: stats-get-playtime-stats
+      description: 返回游戏时间统计
+      parameters:
+        - name: startDate
+          in: query
+          description: "早先有一个已经注册的用户重新创建"
+          required: false
+          type: string
+        - name: endDate
+          in: query
+          description: "早先有一个已经注册的用户重新创建"
+          required: false
+          type: string
+        - name: country
+          in: query
+          description: "按照国家字符串进行过滤"
+          required: false
+          type: string
+
+      responses:
+        "200":
+          description: "反馈所有自有用户的游戏时间统计."
+          schema:
+            $ref: '#/definitions/PlaytimeStatsResponse'
+
+  /license-stats:
+    get:
+      summary: 获取许可证统计信息
+      tags:
+        - stats
+      operationId: stats-get-license-stats
+      description: 返回订阅数据统计
+
+      responses:
+        "200":
+          description: "对于教室/家庭订阅许可返回订阅统计数据。"
+          schema:
+            $ref: '#/definitions/LicenseStatsResponse'
+
+parameters:
+  handlePathParameter:
+    name: handle
+    in: path
+    type: string
+    required: true
+    description: 文件中的 `_id` 或者 `slug`.
+    
+tags:
+  - name: "users"
+
+securityDefinitions:
+  basicAuth:
+    type: basic
+    description: HTTP基础授权。我们会提供你的客户ID(`CLIENT_ID`)和私密(`CLIENT_SECRET`)文件给你
+    
+security:
+  - basicAuth: []
+
+definitions:
+  roleString:
+    type: string
+    description: 通常这是指`"teacher"`("老师")或者`"student"`("学生")
+
+  datetimeString:
+    type: string
+    pattern: /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}\.\d{3}Z$/
+    
+  objectIdString:
+    type: string
+    pattern: /^[0-9a-f]{24}$/
+
+  UserResponse:
+    type: object
+    title: 'UserResponse (用户反馈结果)'
+    description: '这里所列类别的子选项'
+    properties:
+      _id:
+        $ref: '#/definitions/objectIdString'
+      email: 
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      role:
+        $ref: '#/definitions/roleString'
+      stats:
+        type: object
+        properties:
+          gamesCompleted:
+            type: number
+          concepts:
+            type: object
+            additionalProperties:
+              type: number
+          playTime:
+            type: number
+            description: '只有在终点询问的时候才包含进去'
+      oAuthIdentities:
+        type: array
+        items:
+          type: object
+          properties:
+            provider:
+              type: string
+            id:
+              type: string
+      subscription:
+        type: object
+        properties:
+          ends:
+            $ref: '#/definitions/datetimeString'
+          active:
+            type: 'boolean'
+      license:
+        type: object
+        properties:
+          ends:
+            $ref: '#/definitions/datetimeString'
+          active:
+            type: 'boolean'
+
+  ClassroomResponse:
+    type: object
+    title: 'ClassroomResponse (教室反馈结果)'
+    description: '这里列出特征的子集'
+    properties:
+      _id:
+        $ref: '#/definitions/objectIdString'
+      name:
+        type: string
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/objectIdString'
+      ownerID:
+        $ref: '#/definitions/objectIdString'
+      description:
+        type: string
+      courses:
+        type: array
+        items:
+          type: object
+          properties:
+            _id:
+              $ref: '#/definitions/objectIdString'
+            levels:
+              type: array
+              items:
+                type: object
+            enrolled:
+              type: array
+              items:
+                $ref: '#/definitions/objectIdString'
+            instance_id:
+              $ref: '#/definitions/objectIdString'
+
+  ClassroomResponseWithCode:
+    type: object
+    title: 'ClassroomResponseWithCode (教室反馈结果代码)'
+    description: '这里列出属性的子集'
+    properties:
+      _id:
+        $ref: '#/definitions/objectIdString'
+      name:
+        type: string
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/objectIdString'
+      ownerID:
+        $ref: '#/definitions/objectIdString'
+      description:
+        type: string
+      code:
+        type: string
+      codeCamel:
+        type: string
+      courses:
+        type: array
+        items:
+          type: object
+          properties:
+            _id:
+              $ref: '#/definitions/objectIdString'
+            levels:
+              type: array
+              items:
+                type: object
+            enrolled:
+              type: array
+              items:
+                $ref: '#/definitions/objectIdString'
+            instance_id:
+              $ref: '#/definitions/objectIdString'
+      clanId:
+        $ref: '#/definitions/objectIdString'
+
+
+  PlaytimeStatsResponse:
+    type: object
+    properties:
+      playTime:
+        type: number
+        description: "以秒统计游戏使用时间"
+      gamesPlayed:
+        type: number
+        description: "所玩的级别"
+
+  LicenseStatsResponse:
+    type: object
+    properties:
+      licenseDaysGranted:
+        type: number
+        description: "授权订阅天数总数量"
+      licenseDaysUsed:
+        type: number
+        description: "订阅许可天数已使用数量"
+      licenseDaysRemaining:
+        type: number
+        description: "订阅许可天数剩余数量"
+      activeLicenses:
+        type: number
+        description: "活跃/有效订阅许可数量"
+
+  LevelSessionResponse:
+    type: object
+    properties:
+      state:
+        type: object
+        properties:
+          complete:
+            type: boolean
+      level:
+        type: object
+        properties:
+          original:
+            type: string
+            description: '这个`id`代表这个水平'
+      levelID:
+        type: 'string'
+        description: '关卡名，如 wakka-maul'
+      creator:
+        type: 'string'
+        $ref: '#/definitions/objectIdString'
+      playtime:
+        type: 'integer'
+        description: '以秒为单位游戏所玩时间'
+      changed:
+        $ref: '#/definitions/datetimeString'
+      created:
+        $ref: '#/definitions/datetimeString'
+      dateFirstCompleted:
+        $ref: '#/definitions/datetimeString'
+      submitted:
+        type: 'boolean'
+        description: '对于竞技场来说，这一关是否已经加入进阶关卡。'
+      published:
+        type: 'boolean'
+        description: '分享的项目。这些项目是否已经分享给了同学。'
+
+  ClanResponse:
+    type: object
+    title: 'ClanResponse'
+    description: '这里列出特征的子集'
+    properties:
+      _id:
+        $ref: '#/definitions/objectIdString'
+      name:
+        type: string
+      displayName:
+        type: string
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/objectIdString'
+      ownerID:
+        $ref: '#/definitions/objectIdString'
+      description:
+        type: string
+      type:
+        type: string
+      kind:
+        type: string
+      metadata:
+        type: object
