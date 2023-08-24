@@ -2,14 +2,14 @@ groups:
   external:
     generators:
       - name: fernapi/fern-typescript-sdk
-        version: 0.5.9
+        version: 0.5.11
         output:
           location: npm
           package-name: '@fern-api/codecombat'
           token: ${NPM_TOKEN}
         github:
           repository: codecombat/codecombat-node
-        config: 
+        config:
           namespaceExport: CodeCombat
       - name: fernapi/fern-python-sdk
         version: 0.3.0-1-g2d609525
@@ -19,7 +19,7 @@ groups:
           token: ${PYPI_TOKEN}
         github:
           repository: codecombat/codecombat-python
-        config: 
+        config:
           client_class_name: CodeCombat
       - name: fernapi/fern-postman
         version: 0.0.34
