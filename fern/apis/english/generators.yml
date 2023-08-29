@@ -57,7 +57,3 @@ groups:
         github:
           repository: codecombat/codecombat-postman
           mode: pull-request
-    docs:
-      domain: codecombat.docs.buildwithfern.com
-      custom-domains:
-        - api-docs.codecombat.com
