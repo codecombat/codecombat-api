@@ -7,17 +7,17 @@ See the [API documentation](https://codecombat.mintlify.app/introduction), the [
 This repository is the source. Tagging a release on this repository will update the destination repos:
 
 - [Node.js SDK repo](https://github.com/codecombat/codecombat-node)
-- [API docs repo](https://github.com/codecombat/docs)
+- [Python SDK repo](https://github.com/codecombat/codecombat-python)
+- [Java SDK repo](https://github.com/codecombat/codecombat-java)
+- [Go SDK repo](https://github.com/codecombat/codecombat-go)
 - [OpenAPI spec repo](https://github.com/codecombat/codecombat-openapi)
 - [Postman collection repo](https://github.com/codecombat/codecombat-postman)
-- (_Coming soon_) [Java SDK repo](https://github.com/codecombat/codecombat-java)
-- _More SDKs to come..._
 
 ## What is in this repository?
 
 This repository contains
 
-- CodeCombat's Fern API Definition which lives in the [definition](./fern/api/definition/) folder
+- CodeCombat's Fern API Definition in English and Simplified Chinese which lives in the [definition](./fern/api/definition/) folder
 - Generators (see [generators.yml](./fern/api/generators.yml))
 
 ## What is in the API Definition?
