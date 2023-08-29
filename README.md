@@ -1,17 +1,13 @@
 # CodeCombat API
 
-See the [API documentation](https://codecombat.mintlify.app/introduction), the [Node.JS SDK](https://github.com/codecombat/codecombat-node), the [Java SDK](https://github.com/codecombat/codecombat-java), and the [Postman collection](https://github.com/codecombat/codecombat-postman).
+Tagging a release on this repository will update the following repos:
 
-## Repositories
-
-This repository is the source. Tagging a release on this repository will update the destination repos:
-
-- [Node.js SDK repo](https://github.com/codecombat/codecombat-node)
-- [Python SDK repo](https://github.com/codecombat/codecombat-python)
-- [Java SDK repo](https://github.com/codecombat/codecombat-java)
-- [Go SDK repo](https://github.com/codecombat/codecombat-go)
-- [OpenAPI spec repo](https://github.com/codecombat/codecombat-openapi)
-- [Postman collection repo](https://github.com/codecombat/codecombat-postman)
+- [Node.js SDK](https://github.com/codecombat/codecombat-node)
+- [Python SDK](https://github.com/codecombat/codecombat-python)
+- [Java SDK](https://github.com/codecombat/codecombat-java)
+- [Go SDK](https://github.com/codecombat/codecombat-go)
+- [OpenAPI spec](https://github.com/codecombat/codecombat-openapi)
+- [Postman collection](https://github.com/codecombat/codecombat-postman)
 
 ## What is in this repository?
 
