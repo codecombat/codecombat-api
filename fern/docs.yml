@@ -1,5 +1,7 @@
 instances:
   - url: codecombat.docs.buildwithfern.com
+    custom-domains:
+    - api-docs.codecombat.com
 
 navigation:
   - version: English
