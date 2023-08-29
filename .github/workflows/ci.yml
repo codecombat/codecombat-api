@@ -29,7 +29,7 @@ jobs:
       - name: Download Fern
         run: npm install -g fern-api
 
-      - name: PR SDKs, Postman, and OpenAPI repos & publish Docs
+      - name: Generate SDKs, Postman, and OpenAPI
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -39,3 +39,8 @@ jobs:
           POSTMAN_WORKSPACE_ID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: fern generate --api english --group external --version ${{ github.ref_name }} --log-level debug
+      
+      - name: Generate Docs
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: fern generate --docs
