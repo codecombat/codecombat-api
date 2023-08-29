@@ -9,7 +9,7 @@ Tagging a release on this repository will update the following repos:
 - [OpenAPI spec](https://github.com/codecombat/codecombat-openapi)
 - [Postman collection](https://github.com/codecombat/codecombat-postman)
 
-and the CodeCombat [API docs](api-docs.codecombat.com)
+and the CodeCombat [API docs](https://api-docs.codecombat.com)
 
 ## What is in this repository?
 
