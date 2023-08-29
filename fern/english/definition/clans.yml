@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    upsertMember:
+      path: /clan/{handle}/members
+      method: PUT
+      auth: true
+      docs: Upserts a user into the clan.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Upsert User Into Clan
+      request:
+        name: ClansUpsertMemberRequest
+        body:
+          properties:
+            userId:
+              type: string
+              docs: The `_id` or `slug` of the user to add to the clan.
+      response:
+        docs: The clan with the member added.
+        type: root.ClanResponse
+      errors: []

@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    upsertMember:
+      path: /clan/{handle}/members
+      method: PUT
+      auth: true
+      docs: 在部落中加入一个用户
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 将用户添加到部落
+      request:
+        name: ClansUpsertMemberRequest
+        body:
+          properties:
+            userId:
+              type: string
+              docs: 使用字符串 `_id` 或 `slug` 来识别要加入部落的用户.
+      response:
+        docs: 返回加入了新成员的部落
+        type: root.ClanResponse
+      errors: []

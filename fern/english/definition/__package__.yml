@@ -1,0 +1,299 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+types:
+  UsersCreateRequestRole:
+    docs: >
+      `"student"` or `"teacher"`. If unset, a home user will be created, unable
+      to join classrooms.
+    enum:
+      - name: student
+        value: student
+      - name: teacher
+        value: teacher
+
+  UsersCreateRequestHeroConfig:
+    properties:
+      thangType:
+        type: optional<objectIdString>
+
+  ClassroomsCreateRequestAceConfig:
+    properties:
+      language:
+        docs: Programming language for the classroom
+        type: optional<string>
+
+  ClassroomsGetMembersStatsResponseItem:
+    properties:
+      _id:
+        type: optional<objectIdString>
+      stats:
+        type: optional<ClassroomsGetMembersStatsResponseItemStats>
+
+  ClassroomsGetMembersStatsResponseItemStats:
+    properties:
+      gamesCompleted:
+        type: optional<double>
+      playtime:
+        docs: Total play time in seconds
+        type: optional<double>
+
+  roleString:
+    type: string
+    docs: Usually either 'teacher' or 'student'
+
+  datetimeString:
+    type: string
+
+  objectIdString:
+    type: string
+
+  UserResponse:
+    docs: Subset of properties listed here
+    properties:
+      _id:
+        type: optional<objectIdString>
+      email:
+        type: optional<string>
+      name:
+        type: optional<string>
+      slug:
+        type: optional<string>
+      role:
+        type: optional<roleString>
+      stats:
+        type: optional<UserResponseStats>
+      oAuthIdentities:
+        type: optional<list<UserResponseOAuthIdentitiesItem>>
+      subscription:
+        type: optional<UserResponseSubscription>
+      license:
+        type: optional<UserResponseLicense>
+
+  UserResponseStats:
+    properties:
+      gamesCompleted:
+        type: optional<double>
+      concepts:
+        type: optional<map<string, double>>
+      playTime:
+        docs: Included only when specifically requested on the endpoint
+        type: optional<double>
+
+  UserResponseOAuthIdentitiesItem:
+    properties:
+      provider:
+        type: optional<string>
+      id:
+        type: optional<string>
+
+  UserResponseSubscription:
+    properties:
+      ends:
+        type: optional<datetimeString>
+      active:
+        type: optional<boolean>
+
+  UserResponseLicense:
+    properties:
+      ends:
+        type: optional<datetimeString>
+      active:
+        type: optional<boolean>
+
+  ClassroomResponse:
+    docs: Subset of properties listed here
+    properties:
+      _id:
+        type: optional<objectIdString>
+      name:
+        type: optional<string>
+      members:
+        type: optional<list<objectIdString>>
+      ownerID:
+        type: optional<objectIdString>
+      description:
+        type: optional<string>
+      courses:
+        type: optional<list<ClassroomResponseCoursesItem>>
+
+  ClassroomResponseCoursesItem:
+    properties:
+      _id:
+        type: optional<objectIdString>
+      levels:
+        type: optional<list<map<string, unknown>>>
+      enrolled:
+        type: optional<list<objectIdString>>
+      instance_id:
+        type: optional<objectIdString>
+
+  ClassroomResponseWithCode:
+    docs: Subset of properties listed here
+    properties:
+      _id:
+        type: optional<objectIdString>
+      name:
+        type: optional<string>
+      members:
+        type: optional<list<objectIdString>>
+      ownerID:
+        type: optional<objectIdString>
+      description:
+        type: optional<string>
+      code:
+        type: optional<string>
+      codeCamel:
+        type: optional<string>
+      courses:
+        type: optional<list<ClassroomResponseWithCodeCoursesItem>>
+      clanId:
+        type: optional<objectIdString>
+
+  ClassroomResponseWithCodeCoursesItem:
+    properties:
+      _id:
+        type: optional<objectIdString>
+      levels:
+        type: optional<list<map<string, unknown>>>
+      enrolled:
+        type: optional<list<objectIdString>>
+      instance_id:
+        type: optional<objectIdString>
+
+  PlaytimeStatsResponse:
+    properties:
+      playTime:
+        docs: Total play time in seconds
+        type: optional<double>
+      gamesPlayed:
+        docs: Number of levels played
+        type: optional<double>
+
+  LicenseStatsResponse:
+    properties:
+      licenseDaysGranted:
+        docs: Total number of license days granted
+        type: optional<double>
+      licenseDaysUsed:
+        docs: Number of license days used
+        type: optional<double>
+      licenseDaysRemaining:
+        docs: Number of license days remaining
+        type: optional<double>
+      activeLicenses:
+        docs: Number of active/valid licenses
+        type: optional<double>
+
+  LevelSessionResponse:
+    properties:
+      state:
+        type: optional<LevelSessionResponseState>
+      level:
+        type: optional<LevelSessionResponseLevel>
+      levelID:
+        docs: Level slug like `wakka-maul`
+        type: optional<string>
+      creator:
+        type: optional<objectIdString>
+      playtime:
+        docs: Time played in seconds.
+        type: optional<integer>
+      changed:
+        type: optional<datetimeString>
+      created:
+        type: optional<datetimeString>
+      dateFirstCompleted:
+        type: optional<datetimeString>
+      submitted:
+        docs: For arenas. Whether or not the level has been added to the ladder.
+        type: optional<boolean>
+      published:
+        docs: >-
+          For shareable projects. Whether or not the project has been shared
+          with classmates.
+        type: optional<boolean>
+
+  LevelSessionResponseState:
+    properties:
+      complete:
+        type: optional<boolean>
+
+  LevelSessionResponseLevel:
+    properties:
+      original:
+        docs: The id for the level.
+        type: optional<string>
+
+  ClanResponse:
+    docs: Subset of properties listed here
+    properties:
+      _id:
+        type: optional<objectIdString>
+      name:
+        type: optional<string>
+      displayName:
+        type: optional<string>
+      members:
+        type: optional<list<objectIdString>>
+      ownerID:
+        type: optional<objectIdString>
+      description:
+        type: optional<string>
+      type:
+        type: optional<string>
+      kind:
+        type: optional<string>
+      metadata:
+        type: optional<map<string, unknown>>
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    postUsersHandleOAuthIdentities:
+      path: /users/{handle}/o-auth-identities
+      method: POST
+      auth: true
+      docs: >
+        Adds an OAuth2 identity to the user, so that they can be logged in with
+        that identity. You need to send the OAuth code or the access token to
+        this endpoint.
+        1. If no access token is provided, it will use your OAuth2 token URL to
+        exchange the given code for an access token.
+        2. Then it will use the access token (given by you, or received from
+        step 1) to look up the user on your service using the lookup URL, and
+        expects a JSON object in response with an `id` property.
+        3. It will then save that user `id` to the user in our db as a new
+        OAuthIdentity.
+        In this example, we call your lookup URL (let's say,
+        `https://oauth.provider/user?t=<%= accessToken %>`) with the access
+        token (`1234`). The lookup URL returns `{ id: 'abcd' }` in this case,
+        which we save to the user in our db.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Add Oauth2 Identity
+      request:
+        name: PostUsersHandleOAuthIdentitiesRequest
+        body:
+          properties:
+            provider:
+              type: string
+              docs: Your OAuth Provider ID.
+            accessToken:
+              docs: >-
+                Will be passed through your lookup URL to get the user ID.
+                Required if no `code`.
+              type: optional<string>
+            code:
+              docs: >-
+                Will be passed to the OAuth token endpoint to get a token.
+                Required if no `accessToken`.
+              type: optional<string>
+      response:
+        docs: The affected user
+        type: UserResponse
+      errors: []
+
+errors: {}

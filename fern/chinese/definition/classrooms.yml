@@ -1,0 +1,213 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    get:
+      path: /classrooms
+      method: GET
+      auth: true
+      docs: 教室模式之返回教室细节.
+      display-name: 获得一间教室
+      request:
+        name: ClassroomsGetRequest
+        query-parameters:
+          code:
+            docs: 教室 `code`（”代码”）
+            type: string
+          retMemberLimit:
+            docs: 设置返回的教室中显示的学生数量
+            type: optional<double>
+      response:
+        docs: 教室细节
+        type: root.ClassroomResponseWithCode
+      errors: []
+
+    create:
+      path: /classrooms
+      method: POST
+      auth: true
+      docs: 创建一个新的空“教室”
+      display-name: 创建一个教室
+      request:
+        name: ClassroomsCreateRequest
+        body:
+          properties:
+            name:
+              type: string
+              docs: 教室名称
+            ownerID:
+              type: root.objectIdString
+            aceConfig:
+              type: root.ClassroomsCreateRequestAceConfig
+      response:
+        docs: 创建的教室
+        type: root.ClassroomResponseWithCode
+      errors: []
+
+    upsertMember:
+      path: /classrooms/{handle}/members
+      method: PUT
+      auth: true
+      docs: 在教室插入一个用户.
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 添加会员
+      request:
+        name: ClassroomsUpsertMemberRequest
+        body:
+          properties:
+            code:
+              type: string
+              docs: 加入教室需使用代码
+            userId:
+              type: string
+              docs: 使用字符串 `_id` 或`slug` 用来在教室中增加用户.
+            retMemberLimit:
+              docs: 设置返回的教室中显示的学生数量, 默认值为 1000
+              type: optional<double>
+      response:
+        docs: 教室中新增新成员
+        type: root.ClassroomResponse
+      errors: []
+
+    removeMember:
+      path: /classrooms/{handle}/members
+      method: DELETE
+      auth: true
+      docs: 从教室中移出一个学生
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 从教室中移出一个学生
+      request:
+        name: ClassroomsRemoveMemberRequest
+        body:
+          properties:
+            userId:
+              type: string
+              docs: 使用字符串 `_id` 或`slug` 用来从教室中移出用户.
+            retMemberLimit:
+              docs: 设置返回的教室中显示的学生数量, 默认值为 1000
+              type: optional<double>
+      response:
+        docs: 移出了学生的教室
+        type: root.ClassroomResponse
+      errors: []
+
+    enrollUserInCourse:
+      path: /classrooms/{classroomHandle}/courses/{courseHandle}/enrolled
+      method: PUT
+      auth: true
+      docs: |
+        在一个教室里的一门课程上注册一个用户。
+        如果课程是付费课程，用户需要一个有效的订阅许可。
+        用户必须是教室中的一个成员。
+      path-parameters:
+        classroomHandle:
+          docs: 教室 `_id`.
+          type: string
+        courseHandle:
+          docs: 课程 `_id`.
+          type: string
+      display-name: 在课程中注册用户
+      request:
+        name: ClassroomsEnrollUserInCourseRequest
+        query-parameters:
+          retMemberLimit:
+            docs: 设置返回的教室中显示的学生数量, 默认值为 1000
+            type: optional<double>
+        body:
+          properties:
+            userId:
+              type: root.objectIdString
+      response:
+        docs: 教室并且用户加入其中。
+        type: root.ClassroomResponse
+      errors: []
+
+    removeEnrolledUser:
+      path: /classrooms/{classroomHandle}/courses/{courseHandle}/remove-enrolled
+      method: PUT
+      auth: true
+      docs: |
+        将用户从注册的课程和教室中移除。
+      path-parameters:
+        classroomHandle:
+          docs: 教室`_id`.
+          type: string
+        courseHandle:
+          docs: 课程`_id`.
+          type: string
+      display-name: 删除注册用户
+      request:
+        name: ClassroomsRemoveEnrolledUserRequest
+        query-parameters:
+          retMemberLimit:
+            docs: 设置返回的教室中显示的学生数量, 默认值为 1000
+            type: optional<double>
+        body:
+          properties:
+            userId:
+              type: root.objectIdString
+      response:
+        docs: 教室中，将用户移除课程。
+        type: root.ClassroomResponse
+      errors: []
+
+    getMembersStats:
+      path: /classrooms/{classroomHandle}/stats
+      method: GET
+      auth: true
+      docs: |
+        返回教室中所有学生的相关数据
+      path-parameters:
+        classroomHandle:
+          docs: 教室 `_id`.
+          type: string
+      display-name: 获取会员统计信息
+      request:
+        name: ClassroomsGetMembersStatsRequest
+        query-parameters:
+          project:
+            docs: >
+              限制返回的数据内容, 由以下字符串按逗号连接组成: ["creator", "playtime",
+              "state.complete"...]
+            type: optional<string>
+          memberLimit:
+            docs: 返回值中的学生数量, 默认为 10, 最大值为 100
+            type: optional<double>
+          memberSkip:
+            docs: 返回值中跳过的学生数量, 和 memberLimit 共同起到分页作用
+            type: optional<double>
+      response:
+        docs: |
+          返回教室中所有学生的相关数据
+        type: list<root.ClassroomsGetMembersStatsResponseItem>
+      errors: []
+
+    getLevelsPlayed:
+      path: /classrooms/{classroomHandle}/members/{memberHandle}/sessions
+      method: GET
+      auth: true
+      docs: |
+        返回这个教室中用户所玩得所有关卡.
+      path-parameters:
+        classroomHandle:
+          docs: 教室 `_id`.
+          type: string
+        memberHandle:
+          docs: 教室成员 `_id`.
+          type: string
+      display-name: 玩过关卡
+      response:
+        docs: 教室的用户已经注册.
+        type: list<root.LevelSessionResponse>
+      errors: []

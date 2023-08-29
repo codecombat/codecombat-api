@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    loginOauth:
+      path: /auth/login-o-auth
+      method: GET
+      auth: true
+      docs: >
+        用 [user](#users) 登陆.
+        在这个示例中，我们用准入指令（access token)（`1234`)来call你的查找的URL（lookup URL）（比方说，是
+        `https://oauth.provider/user?t=<%=accessToken%>` 。在这个例子中，返回的查找URL（lookup
+        URL）是 `{ id: 'abcd'
+        }`。我们将数据库中储存的OAuthIdentity用户信息与这个`id`匹配。如果匹配成功，用户即可登录并被引导到主页。
+      display-name: 登录用户
+      request:
+        name: LoginOauthRequest
+        query-parameters:
+          provider:
+            docs: 你的授权（oAuth)提供者ID
+            type: string
+          accessToken:
+            docs: 通过传输你的查询网址以便于拿到用户ID。如果没有“代码”这一环节是必须项。
+            type: optional<string>
+          code:
+            docs: >-
+              通过传输到授权指令的终端以便于拿到指令。如果没有“代码”这一环节是必须项。如果没有`accessToken`（“访问指令”）这一环节是必须项。
+            type: optional<string>
+          redirect:
+            docs: 登陆成功后，用户导航路径会被清除。
+            type: optional<string>
+          errorRedirect:
+            docs: >-
+              如果错误出现，将用户重置于这个网址，请求参数至少需要`code`（“代码”）、`errorName`（“错误名称”）和`message`（“消息”）等字段。
+            type: optional<string>
+      errors: []

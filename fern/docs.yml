@@ -1,0 +1,38 @@
+instances:
+  - url: codecombat.docs.buildwithfern.com
+
+navigation:
+  - version: English
+    layout:
+      - section: Overview
+        contents: 
+          - page: Introduction
+            path: ./intro-en.mdx
+      - api-name: english
+        api: API Reference
+  - version: Chinese
+    layout:
+      - section: 概述
+        contents: 
+          - page: 介绍
+            path: ./intro-ch.mdx
+      - api-name: chinese
+        api: API 参考
+
+title: CodeCombat | API Reference
+colors:
+  accentPrimary:
+    dark: "#1FBAB4"
+    light: "#63DFDA"
+logo:
+  dark: ./assets/logo.png
+  light: ./assets/logo.png
+  height: 40
+favicon: ./assets/favicon.png
+navbar-links:
+  - type: secondary
+    text: Contact us
+    url: "mailto:support@codecombat.com"
+  - type: primary
+    text: Sign up
+    url: https://codecombat.com/

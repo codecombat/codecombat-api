@@ -1,0 +1,10 @@
+imports:
+  root: __package__.yml
+name: api
+display-name: CodeCombat API
+error-discrimination:
+  strategy: status-code
+auth: basic
+default-environment: default
+environments:
+  default: https://codecombat.com/api
