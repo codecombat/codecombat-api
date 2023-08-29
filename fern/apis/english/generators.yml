@@ -9,7 +9,6 @@ groups:
           token: ${NPM_TOKEN}
         github:
           repository: codecombat/codecombat-node
-          mode: pull-request
         config:
           namespaceExport: CodeCombat
       - name: fernapi/fern-python-sdk
@@ -20,14 +19,12 @@ groups:
           token: ${PYPI_TOKEN}
         github:
           repository: codecombat/codecombat-python
-          mode: pull-request
         config:
           client_class_name: CodeCombat
       - name: fernapi/fern-go-sdk
         version: 0.3.0
         github:
           repository: fern-codecombat/codecombat-go
-          mode: pull-request
       - name: fernapi/fern-java-sdk
         version: 0.4.9
         output:
@@ -37,17 +34,14 @@ groups:
           password: ${MAVEN_PASSWORD}
         github:
           repository: fern-codecombat/codecombat-java
-          mode: pull-request
       - name: fernapi/fern-openapi
         version: 0.0.19
         github:
           repository: codecombat/codecombat-openapi
-          mode: pull-request
       - name: fernapi/fern-openapi
         version: 0.0.28
         github:
           repository: codecombat/docs
-          mode: pull-request
       - name: fernapi/fern-postman
         version: 0.0.44
         output:
@@ -56,4 +50,3 @@ groups:
           workspace-id: ${POSTMAN_WORKSPACE_ID}
         github:
           repository: codecombat/codecombat-postman
-          mode: pull-request
