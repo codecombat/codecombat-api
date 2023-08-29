@@ -17,8 +17,8 @@ This repository is the source. Tagging a release on this repository will update 
 
 This repository contains
 
-- CodeCombat's Fern API Definition in English and Simplified Chinese which lives in the [definition](./fern/api/definition/) folder
-- Generators (see [generators.yml](./fern/api/generators.yml))
+- CodeCombat's Fern API Definition in English and Simplified Chinese which lives in the [definition](./fern/) folder
+- Generators (see [generators.yml](./fern/english/generators.yml))
 
 ## What is in the API Definition?
 
