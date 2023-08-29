@@ -1,0 +1,58 @@
+## Basics
+
+- Examples are in JavaScript on a Node/Express server with
+  [request](https://github.com/request/request) installed.
+- Request and responses are in JSON
+- API responses are the base resource being created/referenced. So, for example,
+  all routes starting with `/api/users` return [User](/users/post-users)
+  resources.
+
+## Client Setup
+
+We currently do not have a way for you to create or set up your own API Client
+or OAuth Provider information. Please contact us directly to get started.
+
+## Client Authentication
+
+API routes must be called with Basic HTTP Authentication. You will receive a
+username (CLIENT_ID) and password (CLIENT_SECRET) upon creation of your API
+Client in our system. Provide those credentials with each API request.
+
+```javascript
+url = "https://codecombat.com/api/users";
+json = { name: "A username" };
+auth = { name: CLIENT_ID, pass: CLIENT_SECRET };
+request.get({ url, json, auth }, (err, res) =>
+  console.log(res.statusCode, res.body)
+);
+```
+
+We strongly recommend using a secrets manager for storing your client secret.
+Plain text files like dotenv lead to accidental, costly leaks. Use
+[Doppler](https://www.doppler.com/) for a developer-friendly experience. AWS and
+Google Cloud have native solutions as well.
+
+## User Authentication
+
+To authenticate a user on CodeCombat through your service, you will need to use
+the below OAuth 2 process. CodeCombat will act as the client, and your service
+will act as the provider. First, you will need to provide a trusted lookup URL
+and/or a token URL for the setup(See Client Setup above). Then the process from
+user account creation to log in will look like this:
+
+1. **Create the user**
+2. **Link the CodeCombat user to an OAuth identity**
+   You can call this API with a code or an access token. If no access token is
+   given, we will use the token URL to exchange the given code for an access
+   token. Then we call the lookup URL with the access token to receive the user
+   information (id) from your system which is saved to the user in our db.
+3. **Log the user in**
+   You can call this API with the code/access token, and we will get the user
+   information from your system similarly to step 2. Finally, we match this
+   information with what is stored in our database in step 2. If everything
+   checks out, the user is logged in and redirected to the home page.
+
+There is also a
+[concrete example](https://s3.amazonaws.com/files.codecombat.com/codecombat_oauth_example.tar.gz)
+depicting the above process for better understanding. You can also refer to this
+[diagram](https://s3.amazonaws.com/files.codecombat.com/Example_OAuth_Flow.png).

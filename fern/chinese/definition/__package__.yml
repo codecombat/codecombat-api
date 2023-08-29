@@ -1,0 +1,246 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+types:
+  UsersCreateRequestRole:
+    docs: |
+      `"student"` 或者 `"teacher"`
+    enum:
+      - name: student
+        value: student
+      - name: teacher
+        value: teacher
+
+  UsersCreateRequestHeroConfig:
+    properties:
+      thangType:
+        type: optional<objectIdString>
+
+  ClassroomsCreateRequestAceConfig:
+    properties:
+      language:
+        docs: 适合教室的编程语言
+        type: optional<string>
+
+  ClassroomsGetMembersStatsResponseItem:
+    properties:
+      _id:
+        type: optional<objectIdString>
+      stats:
+        type: optional<ClassroomsGetMembersStatsResponseItemStats>
+
+  ClassroomsGetMembersStatsResponseItemStats:
+    properties:
+      gamesCompleted:
+        type: optional<double>
+      playtime:
+        docs: 游戏时间（秒）
+        type: optional<double>
+
+  roleString:
+    type: string
+    docs: 通常这是指`"teacher"`("老师")或者`"student"`("学生")
+
+  datetimeString:
+    type: string
+
+  objectIdString:
+    type: string
+
+  UserResponse:
+    docs: 这里所列类别的子选项
+    properties:
+      _id:
+        type: optional<objectIdString>
+      email:
+        type: optional<string>
+      name:
+        type: optional<string>
+      slug:
+        type: optional<string>
+      role:
+        type: optional<roleString>
+      stats:
+        type: optional<UserResponseStats>
+      oAuthIdentities:
+        type: optional<list<UserResponseOAuthIdentitiesItem>>
+      subscription:
+        type: optional<UserResponseSubscription>
+      license:
+        type: optional<UserResponseLicense>
+
+  UserResponseStats:
+    properties:
+      gamesCompleted:
+        type: optional<double>
+      concepts:
+        type: optional<map<string, double>>
+      playTime:
+        docs: 只有在终点询问的时候才包含进去
+        type: optional<double>
+
+  UserResponseOAuthIdentitiesItem:
+    properties:
+      provider:
+        type: optional<string>
+      id:
+        type: optional<string>
+
+  UserResponseSubscription:
+    properties:
+      ends:
+        type: optional<datetimeString>
+      active:
+        type: optional<boolean>
+
+  UserResponseLicense:
+    properties:
+      ends:
+        type: optional<datetimeString>
+      active:
+        type: optional<boolean>
+
+  ClassroomResponse:
+    docs: 这里列出特征的子集
+    properties:
+      _id:
+        type: optional<objectIdString>
+      name:
+        type: optional<string>
+      members:
+        type: optional<list<objectIdString>>
+      ownerID:
+        type: optional<objectIdString>
+      description:
+        type: optional<string>
+      courses:
+        type: optional<list<ClassroomResponseCoursesItem>>
+
+  ClassroomResponseCoursesItem:
+    properties:
+      _id:
+        type: optional<objectIdString>
+      levels:
+        type: optional<list<map<string, unknown>>>
+      enrolled:
+        type: optional<list<objectIdString>>
+      instance_id:
+        type: optional<objectIdString>
+
+  ClassroomResponseWithCode:
+    docs: 这里列出属性的子集
+    properties:
+      _id:
+        type: optional<objectIdString>
+      name:
+        type: optional<string>
+      members:
+        type: optional<list<objectIdString>>
+      ownerID:
+        type: optional<objectIdString>
+      description:
+        type: optional<string>
+      code:
+        type: optional<string>
+      codeCamel:
+        type: optional<string>
+      courses:
+        type: optional<list<ClassroomResponseWithCodeCoursesItem>>
+      clanId:
+        type: optional<objectIdString>
+
+  ClassroomResponseWithCodeCoursesItem:
+    properties:
+      _id:
+        type: optional<objectIdString>
+      levels:
+        type: optional<list<map<string, unknown>>>
+      enrolled:
+        type: optional<list<objectIdString>>
+      instance_id:
+        type: optional<objectIdString>
+
+  PlaytimeStatsResponse:
+    properties:
+      playTime:
+        docs: 以秒统计游戏使用时间
+        type: optional<double>
+      gamesPlayed:
+        docs: 所玩的级别
+        type: optional<double>
+
+  LicenseStatsResponse:
+    properties:
+      licenseDaysGranted:
+        docs: 授权订阅天数总数量
+        type: optional<double>
+      licenseDaysUsed:
+        docs: 订阅许可天数已使用数量
+        type: optional<double>
+      licenseDaysRemaining:
+        docs: 订阅许可天数剩余数量
+        type: optional<double>
+      activeLicenses:
+        docs: 活跃/有效订阅许可数量
+        type: optional<double>
+
+  LevelSessionResponse:
+    properties:
+      state:
+        type: optional<LevelSessionResponseState>
+      level:
+        type: optional<LevelSessionResponseLevel>
+      levelID:
+        docs: 关卡名，如 wakka-maul
+        type: optional<string>
+      creator:
+        type: optional<objectIdString>
+      playtime:
+        docs: 以秒为单位游戏所玩时间
+        type: optional<integer>
+      changed:
+        type: optional<datetimeString>
+      created:
+        type: optional<datetimeString>
+      dateFirstCompleted:
+        type: optional<datetimeString>
+      submitted:
+        docs: 对于竞技场来说，这一关是否已经加入进阶关卡。
+        type: optional<boolean>
+      published:
+        docs: 分享的项目。这些项目是否已经分享给了同学。
+        type: optional<boolean>
+
+  LevelSessionResponseState:
+    properties:
+      complete:
+        type: optional<boolean>
+
+  LevelSessionResponseLevel:
+    properties:
+      original:
+        docs: 这个`id`代表这个水平
+        type: optional<string>
+
+  ClanResponse:
+    docs: 这里列出特征的子集
+    properties:
+      _id:
+        type: optional<objectIdString>
+      name:
+        type: optional<string>
+      displayName:
+        type: optional<string>
+      members:
+        type: optional<list<objectIdString>>
+      ownerID:
+        type: optional<objectIdString>
+      description:
+        type: optional<string>
+      type:
+        type: optional<string>
+      kind:
+        type: optional<string>
+      metadata:
+        type: optional<map<string, unknown>>
+
+errors: {}

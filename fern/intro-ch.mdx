@@ -1,0 +1,31 @@
+## 基本情况
+
+* 开发者在Node/Express服务器上安装了以下 [请求](https://github.com/request/request)，示例采用JavaScript形式。   
+* 请求和反馈形式为JSON。
+* API接口是创建或者参考的基础资源。因此，举例来说，所有的开发路径(routes)是以'/api/users'开始，返回[User](#users)开发资源。
+
+ ## 客户设置
+目前我们没有让您创建或者设置您自己的客户级开发者接口(API Client)或者OAuth提供者（OAuth Privider)信息。请直接联系我们启动您的开发进程。
+    
+## 用户授权
+系统必须通过基础HTTP授权（Basic HTTP Authentication）来启动API路径。在我们的系统中创建你的API客户（API_CLIENT）之后，你会获得一个用户名（CLIENT_ID）和密码（CLIENT_SECRET）。对于每一个API请求，请提供你的姓名（CLIENT_ID）和密码（CLIENT_SECRET）。
+    
+```javascript
+url = 'https://koudashijie.com/api/users'
+json = { name: 'A username' }
+auth = { name: CLIENT_ID, pass: CLIENT_SECRET }
+request.get({ url, json, auth }, (err, res) => console.log(res.statusCode, res.body))
+```
+
+## 用户授权
+通过您的服务在CodeCombat平台上认证一个用户，您需要采用以下oAuth 2流程. CodeCombat作为一个客户，您的服务作为服务提供者。首先，您需要提供一个可信的查找网址（lookup URL 或者 token URL），来进行创建设置（参见以上客户创建说明），这个创建账户和登陆的过程如以下所示:
+
+1. **创建用户**
+2. **把CodeCombat用户和一个oAuth身份对接** 
+        你可以使用代码或者准入指令（access token)来启动这个API嵌入。如果你没有获得准入指令（access token)，我们会用这个URL指令来替换原有的代码来获得一个准入指令（access token)。
+        然后我们用准入指令（access token)来启动查找网址（lookup URL)，以此从你的系统中获得用户信息(`id`)，这些信息已被储存在我们的用户数据库中。
+3. **用户登陆** 
+        你可以用这个代码/准入指令（access token)来call API, 然后我们会通过类似于第二步中的步骤来获得用户信息。
+        最后，我们将数据库在第二步中获得的信息与这个信息进行匹配，如果匹配成功，用户即可完成登录并被引导到主页。
+
+这里还有一个描述以上过程的 [实例](https://s3.amazonaws.com/files.codecombat.com/codecombat_oauth_example.tar.gz)，以便理解。 同时，你也可以参考这个 [图表](https://s3.amazonaws.com/files.codecombat.com/Example_OAuth_Flow.png)。

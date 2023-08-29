@@ -1,0 +1,278 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    create:
+      path: /users
+      method: POST
+      auth: true
+      docs: |
+        Creates a `User`.
+      display-name: Create User
+      request:
+        name: UsersCreateRequest
+        body:
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            role:
+              docs: >
+                `"student"` or `"teacher"`. If unset, a home user will be
+                created, unable to join classrooms.
+              type: optional<root.UsersCreateRequestRole>
+            preferredLanguage:
+              type: optional<string>
+            heroConfig:
+              type: optional<root.UsersCreateRequestHeroConfig>
+            birthday:
+              type: optional<string>
+      response:
+        docs: The created user
+        type: root.UserResponse
+      errors: []
+
+    get:
+      path: /users/{handle}
+      method: GET
+      auth: true
+      docs: Returns a `User`.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Get User
+      request:
+        name: UsersGetRequest
+        query-parameters:
+          includePlayTime:
+            docs: Set to non-empty string to include stats.playTime in response
+            type: optional<string>
+      response:
+        docs: The requested user
+        type: root.UserResponse
+      errors: []
+
+    update:
+      path: /users/{handle}
+      method: PUT
+      auth: true
+      docs: Modify name of a `User`
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Update User
+      request:
+        name: UsersUpdateRequest
+        body:
+          properties:
+            name:
+              type: string
+              docs: Set to new name string
+            birthday:
+              docs: Set the birthday
+              type: optional<string>
+      response:
+        docs: The affected user
+        type: root.UserResponse
+      errors: []
+
+    getClassrooms:
+      path: /users/{handle}/classrooms
+      method: GET
+      auth: true
+      docs: >-
+        Returns a list of `Classrooms` this user is in (if a student) or owns
+        (if a teacher).
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Get Classrooms By User
+      request:
+        name: UsersGetClassroomsRequest
+        query-parameters:
+          retMemberLimit:
+            docs: limit the return number of members for each classroom
+            type: optional<double>
+      response:
+        docs: The requested classrooms
+        type: list<root.ClassroomResponseWithCode>
+      errors: []
+
+    setHero:
+      path: /users/{handle}/hero-config
+      method: PUT
+      auth: true
+      docs: Set the user's hero.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Get User Hero
+      request:
+        name: UsersSetHeroRequest
+        body:
+          properties:
+            thangType:
+              type: optional<root.objectIdString>
+      response:
+        docs: The affected user
+        type: root.UserResponse
+      errors: []
+
+    setAceConfig:
+      path: /users/{handle}/ace-config
+      method: PUT
+      auth: true
+      docs: >-
+        Set the user's aceConfig (the settings for the in-game Ace code editor),
+        such as whether to enable autocomplete.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Put Ace Config
+      request:
+        name: UsersSetAceConfigRequest
+        body:
+          properties:
+            liveCompletion:
+              docs: >-
+                controls whether autocompletion snippets show up, the default
+                value is true
+              type: optional<boolean>
+            behaviors:
+              docs: >-
+                controls whether things like automatic parenthesis and quote
+                completion happens, the default value is false
+              type: optional<boolean>
+            language:
+              docs: >-
+                only for home users, should be one of ["python", "javascript",
+                "cpp", "lua", "coffeescript"] right now
+              type: optional<string>
+      response:
+        docs: The affected user
+        type: root.UserResponse
+      errors: []
+
+    grantPremiumSubscription:
+      path: /users/{handle}/subscription
+      method: PUT
+      auth: true
+      docs: |
+        Grants a user premium access to the "Home" version up to a certain time.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Put Subscription
+      request:
+        name: UsersGrantPremiumSubscriptionRequest
+        body:
+          properties:
+            ends:
+              type: root.datetimeString
+      response:
+        docs: The affected user
+        type: root.UserResponse
+      errors: []
+
+    shortenSubscription:
+      path: /users/{handle}/shorten-subscription
+      method: PUT
+      auth: true
+      docs: >
+        If the user already has a premium access up to a certain time, this
+        shortens/revokes his/her premium access.
+        If the ends is less than or equal to the current time, it revokes the
+        subscription and sets the end date to be the current time, else it just
+        shortens the subscription.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Shorten User Subscription
+      request:
+        name: UsersShortenSubscriptionRequest
+        body:
+          properties:
+            ends:
+              type: root.datetimeString
+      response:
+        docs: The affected user
+        type: root.UserResponse
+      errors: []
+
+    grantLicense:
+      path: /users/{handle}/license
+      method: PUT
+      auth: true
+      docs: |
+        Grants a user access to the "Classroom" version up to a certain time.
+        Sets their role to "student".
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Grant User License
+      request:
+        name: UsersGrantLicenseRequest
+        body:
+          properties:
+            ends:
+              type: root.datetimeString
+      response:
+        docs: The affected user
+        type: root.UserResponse
+      errors: []
+
+    shortenLicense:
+      path: /users/{handle}/shorten-license
+      method: PUT
+      auth: true
+      docs: >
+        If the user already has access to the "Classroom" version up to a
+        certain time, this shortens/revokes his/her access.
+        If the ends is less than or equal to the current time, it revokes the
+        enrollment and sets the end date to be the current time, else it just
+        shortens the enrollment.
+      path-parameters:
+        handle:
+          docs: The document's `_id` or `slug`.
+          type: string
+      display-name: Shorten User License
+      request:
+        name: UsersShortenLicenseRequest
+        body:
+          properties:
+            ends:
+              type: root.datetimeString
+      response:
+        docs: The affected user
+        type: root.UserResponse
+      errors: []
+
+    lookup:
+      path: /user-lookup/{property}/{value}
+      method: GET
+      auth: true
+      docs: Redirects to `/users/{handle}` given a unique, identifying property
+      path-parameters:
+        property:
+          docs: The property to lookup by. May either be `"israel-id"` or `"name"`.
+          type: string
+        value:
+          docs: The value to be looked up.
+          type: string
+      display-name: Search for User
+      errors: []
+  display-name: users

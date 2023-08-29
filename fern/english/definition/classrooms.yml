@@ -1,20 +1,20 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
-  commons: commons.yml
+  root: __package__.yml
 
 service:
-  display-name: ClassroomsService
-  auth: true
-  base-path: /classrooms
+  auth: false
+  base-path: ""
   endpoints:
     get:
-      display-name: Get Classroom Details 
-      path: ""
+      path: /classrooms
       method: GET
+      auth: true
       docs: Returns the classroom details for a class code.
+      display-name: Get Classroom Details
       request:
-        name: GetClassroomDetailsRequest
+        name: ClassroomsGetRequest
         query-parameters:
           code:
             docs: The classroom's `code`.
@@ -22,76 +22,94 @@ service:
           retMemberLimit:
             docs: limit the return number of members for the classroom
             type: optional<double>
-      response: commons.ClassroomResponseWithCode
+      response:
+        docs: The classroom details.
+        type: root.ClassroomResponseWithCode
+      errors: []
 
     create:
-      display-name: Create a Classroom
-      path: ""
+      path: /classrooms
       method: POST
+      auth: true
       docs: Creates a new empty `Classroom`.
+      display-name: Create a classroom
       request:
-        name: CreateClassroomRequest
+        name: ClassroomsCreateRequest
         body:
           properties:
             name:
-              docs: Name of the classroom
               type: string
-            ownerID: commons.objectIdString
-            aceConfig: AceConfig
+              docs: Name of the classroom
+            ownerID:
+              type: root.objectIdString
+            aceConfig:
+              type: root.ClassroomsCreateRequestAceConfig
+      response:
+        docs: The created classroom
+        type: root.ClassroomResponseWithCode
+      errors: []
 
-    upsertFromClassroom:
-      display-name: Upsert a User from Classroom
-      path: /{handle}/members
+    upsertMember:
+      path: /classrooms/{handle}/members
       method: PUT
+      auth: true
       docs: Upserts a user into the classroom.
       path-parameters:
         handle:
           docs: The document's `_id` or `slug`.
           type: string
+      display-name: Upsert a user from classroom
       request:
-        name: UpsertClassroomRequest
+        name: ClassroomsUpsertMemberRequest
         body:
           properties:
             code:
+              type: string
               docs: The code for joining this classroom
-              type: string
             userId:
-              docs: The `_id` or `slug` of the user to add to the class.
               type: string
+              docs: The `_id` or `slug` of the user to add to the class.
             retMemberLimit:
               docs: >-
                 limit the return number of members for the classroom, the
                 default value is 1000
               type: optional<double>
-      response: commons.ClassroomResponse
+      response:
+        docs: The classroom with the member added.
+        type: root.ClassroomResponse
+      errors: []
 
-    deleteUserFromClassroom:
-      display-name: Delete User from Classroom 
-      path: /{handle}/members
+    removeMember:
+      path: /classrooms/{handle}/members
       method: DELETE
+      auth: true
       docs: Remove a user from the classroom.
       path-parameters:
         handle:
           docs: The document's `_id` or `slug`.
           type: string
+      display-name: Delete User from Classroom
       request:
-        name: DeleteUserFromClassroomRequest
+        name: ClassroomsRemoveMemberRequest
         body:
           properties:
             userId:
-              docs: The `_id` or `slug` of the user to remove from the class.
               type: string
+              docs: The `_id` or `slug` of the user to remove from the class.
             retMemberLimit:
               docs: >-
                 limit the return number of members for the classroom, the
                 default value is 1000
               type: optional<double>
-      response: commons.ClassroomResponse
+      response:
+        docs: The classroom with the member removed.
+        type: root.ClassroomResponse
+      errors: []
 
     enrollUserInCourse:
-      display-name: Enroll a User in a Course
-      path: /{classroomHandle}/courses/{courseHandle}/enrolled
+      path: /classrooms/{classroomHandle}/courses/{courseHandle}/enrolled
       method: PUT
+      auth: true
       docs: |
         Enrolls a user in a course in a classroom.
         If the course is paid, user must have an active license.
@@ -103,8 +121,9 @@ service:
         courseHandle:
           docs: The course's `_id`.
           type: string
+      display-name: Enroll User in a Course
       request:
-        name: EnrollUserInCourseRequest
+        name: ClassroomsEnrollUserInCourseRequest
         query-parameters:
           retMemberLimit:
             docs: >-
@@ -113,13 +132,17 @@ service:
             type: optional<double>
         body:
           properties:
-            userId: commons.objectIdString
-      response: commons.ClassroomResponse
+            userId:
+              type: root.objectIdString
+      response:
+        docs: The classroom with the user enrolled.
+        type: root.ClassroomResponse
+      errors: []
 
-    removeUserFromClassroom:
-      display-name: Remove a User from a Classroom
-      path: /{classroomHandle}/courses/{courseHandle}/remove-enrolled
+    removeEnrolledUser:
+      path: /classrooms/{classroomHandle}/courses/{courseHandle}/remove-enrolled
       method: PUT
+      auth: true
       docs: |
         Removes an enrolled user from a course in a classroom.
       path-parameters:
@@ -129,8 +152,9 @@ service:
         courseHandle:
           docs: The course's `_id`.
           type: string
+      display-name: Remove User from a classroom
       request:
-        name: RemoveUserFromClassroomRequest
+        name: ClassroomsRemoveEnrolledUserRequest
         query-parameters:
           retMemberLimit:
             docs: >-
@@ -139,21 +163,26 @@ service:
             type: optional<double>
         body:
           properties:
-            userId: commons.objectIdString
-      response: commons.ClassroomResponse
+            userId:
+              type: root.objectIdString
+      response:
+        docs: The classroom with the user removed from the course.
+        type: root.ClassroomResponse
+      errors: []
 
     getMembersStats:
-      display-name: Get Members Stats for a Classroom 
-      path: /{classroomHandle}/stats
+      path: /classrooms/{classroomHandle}/stats
       method: GET
+      auth: true
       docs: |
         Returns a list of all members stats for the classroom.
       path-parameters:
         classroomHandle:
           docs: The classroom's `_id`.
           type: string
+      display-name: Get Member Stats
       request:
-        name: GetMembersStatsRequest
+        name: ClassroomsGetMembersStatsRequest
         query-parameters:
           project:
             docs: >
@@ -170,12 +199,15 @@ service:
             docs: |
               Skip the members that doesn't need to return, for pagination
             type: optional<double>
-      response: list<MemberStat>
+      response:
+        docs: The members stats for the classroom.
+        type: list<root.ClassroomsGetMembersStatsResponseItem>
+      errors: []
 
-    getLevelSession:
-      display-name: Get Level Session
-      path: /{classroomHandle}/members/{memberHandle}/sessions
+    getLevelsPlayed:
+      path: /classrooms/{classroomHandle}/members/{memberHandle}/sessions
       method: GET
+      auth: true
       docs: |
         Returns a list of all levels played by the user for the classroom.
       path-parameters:
@@ -185,56 +217,8 @@ service:
         memberHandle:
           docs: The classroom member's `_id`.
           type: string
-      response: list<LevelSessionResponse>
-
-types:
-  LevelSessionResponse:
-    properties:
-      state: optional<State>
-      level: optional<Level>
-      levelID:
-        docs: Level slug like `wakka-maul`
-        type: optional<string>
-      creator: optional<commons.objectIdString>
-      playtime:
-        docs: Time played in seconds.
-        type: optional<integer>
-      changed: optional<commons.datetimeString>
-      created: optional<commons.datetimeString>
-      dateFirstCompleted: optional<commons.datetimeString>
-      submitted:
-        docs: For arenas. Whether or not the level has been added to the ladder.
-        type: optional<boolean>
-      published:
-        docs: >-
-          For shareable projects. Whether or not the project has been shared
-          with classmates.
-        type: optional<boolean>
-
-  State:
-    properties:
-      complete: optional<boolean>
-
-  Level:
-    properties:
-      original:
-        docs: The id for the level.
-        type: optional<string>
-
-  AceConfig:
-    properties:
-      language:
-        docs: Programming language for the classroom
-        type: optional<string>
-
-  PlayStats:
-    properties:
-      gamesCompleted: optional<double>
-      playtime:
-        docs: Total play time in seconds
-        type: optional<double>
-
-  MemberStat:
-    properties:
-      _id: optional<commons.objectIdString>
-      stats: optional<PlayStats>
+      display-name: Get Level Session
+      response:
+        docs: The classroom with the user enrolled.
+        type: list<root.LevelSessionResponse>
+      errors: []

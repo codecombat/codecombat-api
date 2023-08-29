@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    getPlaytimeStats:
+      path: /playtime-stats
+      method: GET
+      auth: true
+      docs: Returns the playtime stats
+      display-name: Get Playtime Stats
+      request:
+        name: StatsGetPlaytimeStatsRequest
+        query-parameters:
+          startDate:
+            docs: Earliest an included user was created
+            type: optional<string>
+          endDate:
+            docs: Latest an included user was created
+            type: optional<string>
+          country:
+            docs: Filter by country string
+            type: optional<string>
+      response:
+        docs: Returns the playtime stats accross all owned users.
+        type: root.PlaytimeStatsResponse
+      errors: []
+
+    getLicenseStats:
+      path: /license-stats
+      method: GET
+      auth: true
+      docs: Returns the license stats
+      display-name: Get License Stats
+      response:
+        docs: Returns the license stats for classroom/home subscription licenses.
+        type: root.LicenseStatsResponse
+      errors: []

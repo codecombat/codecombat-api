@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    getPlaytimeStats:
+      path: /playtime-stats
+      method: GET
+      auth: true
+      docs: 返回游戏时间统计
+      display-name: 获取游戏时间统计数据
+      request:
+        name: StatsGetPlaytimeStatsRequest
+        query-parameters:
+          startDate:
+            docs: 早先有一个已经注册的用户重新创建
+            type: optional<string>
+          endDate:
+            docs: 早先有一个已经注册的用户重新创建
+            type: optional<string>
+          country:
+            docs: 按照国家字符串进行过滤
+            type: optional<string>
+      response:
+        docs: 反馈所有自有用户的游戏时间统计.
+        type: root.PlaytimeStatsResponse
+      errors: []
+
+    getLicenseStats:
+      path: /license-stats
+      method: GET
+      auth: true
+      docs: 返回订阅数据统计
+      display-name: 获取许可证统计信息
+      response:
+        docs: 对于教室/家庭订阅许可返回订阅统计数据。
+        type: root.LicenseStatsResponse
+      errors: []

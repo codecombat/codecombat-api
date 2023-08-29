@@ -1,33 +1,27 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
-service: 
-  display-name: UserService
-  auth: true
-  base-path: /auth/login-o-auth
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
   endpoints:
-    get:
-      display-name: Login User
-      path: ""
+    loginOauth:
+      path: /auth/login-o-auth
       method: GET
+      auth: true
       docs: >
-        Logs a [user](#users) in.
-        #### Example
-        ```javascript
-        url =
-        `https://codecombat.com/auth/login-o-auth?provider=${OAUTH_PROVIDER_ID}&accessToken=1234`
-        res.redirect(url)
-        // User is sent to this CodeCombat URL and assuming everything checks
-        out, 
-        // is logged in and redirected to the home page.
-        ```
+        Logs a user in.
         In this example, we call your lookup URL (let's say,
         `https://oauth.provider/user?t=<%= accessToken %>`) with the access
         token (`1234`). The lookup URL returns `{ id: 'abcd' }` in this case. We
         will match this `id` with the OAuthIdentity stored in the user
         information in our db. If everything checks out, the user is logged in
         and redirected to the home page.
+      display-name: Login User
       request:
-        name: GetUserAuthRequest
+        name: LoginOauthRequest
         query-parameters:
           provider:
             docs: Your OAuth Provider ID
@@ -52,3 +46,4 @@ service:
               If an error happens, redirects the user to this url, with at least
               query parameters `code`, `errorName` and `message`.
             type: optional<string>
+      errors: []

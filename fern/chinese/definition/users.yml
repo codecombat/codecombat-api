@@ -1,0 +1,299 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  root: __package__.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    create:
+      path: /users
+      method: POST
+      auth: true
+      docs: |
+        创建一个`User`（“用户”）
+      display-name: 创建用户
+      request:
+        name: UsersCreateRequest
+        body:
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            role:
+              docs: |
+                `"student"` 或者 `"teacher"`
+              type: optional<root.UsersCreateRequestRole>
+            preferredLanguage:
+              type: optional<string>
+            heroConfig:
+              type: optional<root.UsersCreateRequestHeroConfig>
+            birthday:
+              type: optional<string>
+      response:
+        docs: 已经创建的用户
+        type: root.UserResponse
+      errors: []
+
+    get:
+      path: /users/{handle}
+      method: GET
+      auth: true
+      docs: 返回一个`User`（“用户”）。
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 获取用户
+      request:
+        name: UsersGetRequest
+        query-parameters:
+          includePlayTime:
+            docs: 设置非空字符串包括反馈函数stats.playTime
+            type: optional<string>
+      response:
+        docs: 需求用户
+        type: root.UserResponse
+      errors: []
+
+    update:
+      path: /users/{handle}
+      method: PUT
+      auth: true
+      docs: 修改一个 `User`("用户") 的姓名
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      request:
+        name: UsersUpdateRequest
+        body:
+          properties:
+            name:
+              docs: 设置一个新姓名
+              type: optional<string>
+            birthday:
+              docs: 设置生日
+              type: optional<string>
+      response:
+        docs: 影响的用户
+        type: root.UserResponse
+      errors: []
+
+    getClassrooms:
+      path: /users/{handle}/classrooms
+      method: GET
+      auth: true
+      docs: 返回`Clasrooms`（“教室”）清单，这个用户（如果是学生）在教室里或者是教室的主人（如果是老师）。
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 按用户获取教室
+      request:
+        name: UsersGetClassroomsRequest
+        query-parameters:
+          retMemberLimit:
+            docs: 设置返回的教室中显示的学生数量
+            type: optional<double>
+      response:
+        docs: 教室需求
+        type: list<root.ClassroomResponseWithCode>
+      errors: []
+
+    setHero:
+      path: /users/{handle}/hero-config
+      method: PUT
+      auth: true
+      docs: 设置用户的英雄。
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 获取用户英雄
+      request:
+        name: UsersSetHeroRequest
+        body:
+          properties:
+            thangType:
+              type: optional<root.objectIdString>
+      response:
+        docs: 受影响的客户
+        type: root.UserResponse
+      errors: []
+
+    setAceConfig:
+      path: /users/{handle}/ace-config
+      method: PUT
+      auth: true
+      docs: 设置用户的代码配置 ( 指用户在编辑器中可以修改的设置 ) , 如代码补全等.
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 设置用户的代码配置
+      request:
+        name: UsersSetAceConfigRequest
+        body:
+          properties:
+            liveCompletion:
+              docs: 控制代码自动补全提示是否出现, 默认值是 true
+              type: optional<boolean>
+            behaviors:
+              docs: 控制括号, 引号是否自动补齐, 默认值是 false
+              type: optional<boolean>
+            language:
+              docs: >-
+                控制个人账号(学生账号无效)使用的语言, 目前仅支持 python, javascript, cpp, lua,
+                coffeescript
+              type: optional<string>
+      response:
+        docs: 受影响的客户
+        type: root.UserResponse
+      errors: []
+
+    linkOauthIdentity:
+      path: /users/{handle}/o-auth-identities
+      method: POST
+      auth: true
+      docs: >
+        将一个OAuth2身份（OAuth2 identity）加给用户，用户可以以此身份登录。你需要将一个OAuth代码或者准入指令（access
+        token)发送到这个端口。 
+        1. 如果没有获得准入指令（access token)的话，系统会使用OAuth2指令URL（OAuth2 token
+        URL）来交换获得的代码，以此获得准入指令（access token)。         
+        2. 然后系统会在你的服务上使用查找URL（lookup URL）爱你的通过准入指令（access token)
+        （改指令可能是你之前给予的，或者是在第一步中获得的）来查找这名用户。 并预计获得一个回应一个`id`属性的JSON对象。
+        3. 之后系统将保存用户`id`到我们的用户数据库中，作为一个新的OAuthIdentity.
+        在这个示例中, 我们用准入指令（access token)（`1234`)来call你的查找网址（lookup URL)（比方说是
+        `https://oauth.provider/user?t=<%= accessToken %>`）然后查找网址（lookup
+        URL)返回`{ id: 'abcd' }`，我们已经将这个用户储存到我们的数据库中了。
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 将一个OAuth2身份
+      request:
+        name: UsersLinkOauthIdentityRequest
+        body:
+          properties:
+            provider:
+              type: string
+              docs: 你的授权提供者 ID （OAuth Provider ID）。
+            accessToken:
+              docs: 将传输查询网址得到用户ID。如果没有`code`（“代码”）需要这一项。
+              type: optional<string>
+            code:
+              docs: 将传输授权指令终点得到令牌。如果没有`accessToken`(“访问令牌”)需要这一项。
+              type: optional<string>
+      response:
+        docs: 受影响用户
+        type: root.UserResponse
+      errors: []
+
+    grantPremiumSubscription:
+      path: /users/{handle}/subscription
+      method: PUT
+      auth: true
+      docs: |
+        在一段时间内授权用户访问“主页”版本的高级访问权限。
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 授予订阅
+      request:
+        name: UsersGrantPremiumSubscriptionRequest
+        body:
+          properties:
+            ends:
+              type: root.datetimeString
+      response:
+        docs: 受影响用户
+        type: root.UserResponse
+      errors: []
+
+    shortenSubscription:
+      path: /users/{handle}/shorten-subscription
+      method: PUT
+      auth: true
+      docs: |
+        如果用户在一段时间已经有了高级访问权限，这将缩短/撤销他的高级访问权限。
+        如果结束时间少于或者等于现在时间，将撤销订阅权限并将结束时间设置为现在时间，否则将缩短订阅时间。
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 撤销他的高级访问权限
+      request:
+        name: UsersShortenSubscriptionRequest
+        body:
+          properties:
+            ends:
+              type: root.datetimeString
+      response:
+        docs: 受影响客户
+        type: root.UserResponse
+      errors: []
+
+    grantLicense:
+      path: /users/{handle}/license
+      method: PUT
+      auth: true
+      docs: |
+        在一段时间内给予用户使用“教室”版本的权限。定义他们的角色为`"student"`（“学生”）。
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 格兰特“课堂”版
+      request:
+        name: UsersGrantLicenseRequest
+        body:
+          properties:
+            ends:
+              type: root.datetimeString
+      response:
+        docs: 受影响用户
+        type: root.UserResponse
+      errors: []
+
+    shortenLicense:
+      path: /users/{handle}/shorten-license
+      method: PUT
+      auth: true
+      docs: |
+        如果用户在一定时间内已经登陆“教室”版本，这将缩短或撤销他的权限。
+        如果结束比现在时间短或者和现在时间相同， 这将撤销登陆，并将结束时间设置为当前时间，否则这将缩短注册时间。
+      path-parameters:
+        handle:
+          docs: 文件中的 `_id` 或者 `slug`.
+          type: string
+      display-name: 缩短用户许可
+      request:
+        name: UsersShortenLicenseRequest
+        body:
+          properties:
+            ends:
+              type: root.datetimeString
+      response:
+        docs: 受影响客户
+        type: root.UserResponse
+      errors: []
+
+    lookup:
+      path: /user-lookup/{property}/{value}
+      method: GET
+      auth: true
+      docs: 采用唯一、可识别属性重新定向到`/users/{handle}`
+      path-parameters:
+        property:
+          docs: 查找属性对应字符串，也许是 `"israel-id"` 或者 `"name"`.
+          type: string
+        value:
+          docs: 查找的值.
+          type: string
+      display-name: 搜索用户
+      errors: []
+  display-name: users
