@@ -24,7 +24,7 @@ groups:
       - name: fernapi/fern-go-sdk
         version: 0.3.0
         github:
-          repository: fern-codecombat/codecombat-go
+          repository: codecombat/codecombat-go
       - name: fernapi/fern-java-sdk
         version: 0.4.9
         output:
